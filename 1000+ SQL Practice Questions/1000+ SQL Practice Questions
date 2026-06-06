@@ -17,11 +17,11 @@ VALUES
 (4, 'Michael Scott', 3800.00),
 (5, 'Pam Beesly', 4500.00);
 
-	SELECT *
-	FROM
-		employees
-	WHERE 
-		salary > 4000;
+SELECT *
+FROM
+	employees
+WHERE 
+	salary > 4000;
     
 
 
