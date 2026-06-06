@@ -2,26 +2,26 @@
 
 -- Find all employees whose salary is greater than 4000.
 
-	DROP TABLE IF EXISTS employees;
-	
-	CREATE TABLE employees (
-	employee_id INT PRIMARY KEY,
-	name VARCHAR(50),
-	salary DECIMAL(10, 2)
-	);
-	INSERT INTO employees (employee_id, name, salary)
-	VALUES
-	(1, 'John Doe', 5000.00),
-	(2, 'Jane Smith', 3500.00),
-	(3, 'Emily Davis', 4200.00),
-	(4, 'Michael Scott', 3800.00),
-	(5, 'Pam Beesly', 4500.00);
-	
-	SELECT *
-	FROM
-		employees
-	WHERE 
-		salary > 4000;
+		DROP TABLE IF EXISTS employees;
+		
+		CREATE TABLE employees (
+		employee_id INT PRIMARY KEY,
+		name VARCHAR(50),
+		salary DECIMAL(10, 2)
+		);
+		INSERT INTO employees (employee_id, name, salary)
+		VALUES
+		(1, 'John Doe', 5000.00),
+		(2, 'Jane Smith', 3500.00),
+		(3, 'Emily Davis', 4200.00),
+		(4, 'Michael Scott', 3800.00),
+		(5, 'Pam Beesly', 4500.00);
+		
+		SELECT *
+		FROM
+			employees
+		WHERE 
+			salary > 4000;
     
 
 
