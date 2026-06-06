@@ -1,7 +1,9 @@
 # For this I have used MySQL tool
 
+-- =====================================================
 -- Find all employees whose salary is greater than 4000.
-
+-- =====================================================
+	
 DROP TABLE IF EXISTS employees;
 
 CREATE TABLE employees (
@@ -24,8 +26,9 @@ WHERE
 	salary > 4000;
     
 
-
+-- =====================================================
 -- List all books published in the year 2023.
+-- =====================================================
 
 DROP TABLE IF EXISTS books;
 
@@ -52,8 +55,9 @@ WHERE
 	published_year = 2023;
     
     
-    
+ -- =====================================================   
 -- Count the number of products in the products table.
+-- =====================================================
 
 DROP TABLE IF EXISTS products;
     
@@ -77,9 +81,10 @@ FROM
 	products;
     
     
-    
+-- =====================================================    
 --  Find all orders placed by the customer with customer_id = 1.   
-    
+-- =====================================================
+
 DROP TABLE IF EXISTS orders;
     
 CREATE TABLE orders (
@@ -103,8 +108,10 @@ FROM
 	orders
 WHERE customer_id = 1;
     
-    
+
+-- =====================================================    
 -- Retrieve all rows from the cities table.
+-- =====================================================
 
 DROP TABLE IF EXISTS cities;
 CREATE TABLE cities (
@@ -124,7 +131,10 @@ VALUES
 SELECT * FROM cities;
 
 
+-- =====================================================
 -- Find all customers who are older than 30.
+-- =====================================================
+
 
 DROP TABLE IF EXISTS customers;
 
