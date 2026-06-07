@@ -1152,3 +1152,432 @@ FROM
 GROUP BY company = 'TCS'
 HAVING
 	SUM(employee_id) > 3;
+
+
+-- =====================================================
+-- List all sellers on Amazon who sold more than 5 different products.
+-- =====================================================
+
+DROP TABLE IF EXISTS sellers;
+DROP TABLE IF EXISTS products;
+
+-- Sellers table
+CREATE TABLE sellers (
+seller_id INT PRIMARY KEY,
+name VARCHAR(50)
+);
+-- Products table
+CREATE TABLE products (
+product_id INT PRIMARY KEY,
+seller_id INT,
+name VARCHAR(50),
+FOREIGN KEY (seller_id) REFERENCES sellers(seller_id)
+);
+-- Sample data for sellers
+INSERT INTO sellers (seller_id, name)
+VALUES
+(1, 'Seller A'),
+(2, 'Seller B'),
+(3, 'Seller C');
+-- Sample data for products
+INSERT INTO products (product_id, seller_id, name)
+VALUES
+(1, 1, 'Laptop'),
+(2, 1, 'Mouse'),
+(3, 1, 'Keyboard'),
+(4, 1, 'Monitor'),
+(5, 1, 'Speaker'),
+(6, 1, 'Tablet'),
+(7, 2, 'Shoes'),
+(8, 2, 'T-shirt'),
+(9, 3, 'Headphones');
+
+
+SELECT
+	s.seller_id
+FROM
+	sellers s
+JOIN
+	products p
+ON s.seller_id = p.seller_id
+GROUP BY
+	s.seller_id
+HAVING
+	COUNT(DISTINCT p.name) > 5;
+
+
+-- =====================================================
+-- Find the most ordered product on Zomato.
+-- =====================================================
+
+DROP TABLE IF EXISTS orders;
+
+CREATE TABLE orders (
+order_id INT PRIMARY KEY,
+product_name VARCHAR(50),
+quantity INT
+);
+-- Sample data for orders
+INSERT INTO orders (order_id, product_name, quantity)
+VALUES
+(1, 'Pizza', 5),
+(2, 'Burger', 3),
+(3, 'Pizza', 7),
+(4, 'Pasta', 2),
+(5, 'Pizza', 6),
+(6, 'Burger', 4);
+
+
+SELECT
+	product_name,
+    SUM(quantity) AS total_quantity
+FROM
+	orders
+GROUP BY product_name
+ORDER BY
+	SUM(quantity) DESC
+LIMIT 1;
+
+
+-- =====================================================
+-- Find all customers who have accounts in both SBI and ICICI.
+-- =====================================================
+DROP TABLE IF EXISTS accounts;
+
+CREATE TABLE accounts (
+customer_id INT,
+bank_name VARCHAR(50)
+);
+-- Sample data for accounts
+INSERT INTO accounts (customer_id, bank_name)
+VALUES
+(1, 'SBI'),
+(2, 'ICICI'),
+(3, 'SBI'),
+(1, 'ICICI'),
+(4, 'HDFC'),
+(3, 'ICICI');
+
+
+SELECT
+	*
+FROM 
+	accounts
+WHERE 
+	bank_name IN ('SBI' , 'ICICI')
+GROUP BY
+	customer_id
+HAVING
+	COUNT(DISTINCT bank_name) = 2;
+
+
+-- =====================================================
+-- Find the employee(s) with the second-highest salary in Infosys.
+-- =====================================================
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE employees (
+employee_id INT PRIMARY KEY,
+name VARCHAR(50),
+salary DECIMAL(10, 2)
+);
+
+INSERT INTO employees (employee_id, name, salary)
+VALUES
+(1, 'Amit', 50000.00),
+(2, 'Riya', 60000.00),
+(3, 'Vivek', 80000.00),
+(4, 'Sara', 70000.00),
+(5, 'Neha', 60000.00);
+
+
+SELECT
+    employee_id,
+    name,
+    salary
+FROM employees
+WHERE salary =
+(
+    SELECT MAX(salary)
+    FROM employees
+    WHERE salary <
+    (
+        SELECT MAX(salary)
+        FROM employees
+    )
+);
+
+
+-- =====================================================
+-- Find all movies released after 2015 with a rating higher than the average rating of all movies.
+-- =====================================================
+DROP TABLE IF EXISTS movies;
+
+CREATE TABLE movies (
+movie_id INT PRIMARY KEY,
+name VARCHAR(50),
+release_year INT,
+rating DECIMAL(3, 1)
+);
+
+INSERT INTO movies (movie_id, name, release_year, rating)
+VALUES
+(1, 'Movie A', 2014, 8.2),
+(2, 'Movie B', 2016, 7.5),
+(3, 'Movie C', 2018, 8.8),
+(4, 'Movie D', 2020, 7.9),
+(5, 'Movie E', 2013, 6.5);
+
+
+SELECT *
+FROM
+movies
+WHERE
+	release_year > 2015
+    AND
+	rating > (
+	SELECT
+		AVG(rating)
+	FROM
+		movies
+    );
+
+
+-- =====================================================
+-- Find the total number of transactions done per day by Paytm, sorted in descending order of the number of transactions.
+-- =====================================================
+DROP TABLE IF EXISTS transactions;
+
+CREATE TABLE transactions (
+transaction_id INT PRIMARY KEY,
+company VARCHAR(50),
+transaction_date DATE
+);
+
+INSERT INTO transactions (transaction_id, company, transaction_date)
+VALUES
+(1, 'Paytm', '2024-12-01'),
+(2, 'Paytm', '2024-12-01'),
+(3, 'Google Pay', '2024-12-01'),
+(4, 'Paytm', '2024-12-02'),
+(5, 'Paytm', '2024-12-02'),
+(6, 'PhonePe', '2024-12-02');
+
+
+SELECT 
+	transaction_date, COUNT(transaction_id) AS total_transactions
+FROM 
+	transactions
+WHERE 
+	company = 'Paytm'
+GROUP BY 
+	transaction_date
+ORDER BY 
+	total_transactions DESC;
+
+
+-- =====================================================
+-- Find the top 3 most profitable companies in each industry.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+industry VARCHAR(50),
+revenue DECIMAL(15, 2),
+profit DECIMAL(15, 2)
+);
+
+INSERT INTO companies (company_id, name, industry, revenue, profit)
+VALUES
+(1, 'Apple', 'Technology', 365000000000, 94680000000),
+(2, 'Microsoft', 'Technology', 198000000000, 72900000000),
+(3, 'Amazon', 'E-commerce', 469800000000, 33240000000),
+(4, 'Tesla', 'Automotive', 53800000000, 5563000000),
+(5, 'Google', 'Technology', 282000000000, 76000000000),
+(6, 'Walmart', 'Retail', 572800000000, 15000000000);
+
+
+WITH cte AS (
+	SELECT
+		name,
+        industry,
+        profit,
+        DENSE_RANK() OVER(PARTITION BY industry ORDER BY profit DESC) AS rnk
+	FROM
+		companies
+)
+SELECT
+	*
+FROM
+	cte
+WHERE
+	rnk <= 3;
+
+
+-- =====================================================
+-- Calculate the average revenue and profit for each sector and list sectors where the average profit exceeds $10 billion.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+industry VARCHAR(50),
+revenue DECIMAL(15, 2),
+profit DECIMAL(15, 2)
+);
+
+INSERT INTO companies (company_id, name, industry, revenue, profit)
+VALUES
+(1, 'Apple', 'Technology', 365000000000, 94680000000),
+(2, 'Microsoft', 'Technology', 198000000000, 72900000000),
+(3, 'Amazon', 'E-commerce', 469800000000, 33240000000),
+(4, 'Tesla', 'Automotive', 53800000000, 5563000000),
+(5, 'Google', 'Technology', 282000000000, 76000000000),
+(6, 'Walmart', 'Retail', 572800000000, 15000000000);
+
+
+SELECT
+	name,
+    industry,
+	AVG(revenue) AS avg_revenue,
+    AVG(profit) AS avg_profit
+FROM
+	companies
+GROUP BY
+	industry
+HAVING 
+		AVG(profit) > 10000000000;
+
+
+-- =====================================================
+-- Find the company with the second-highest revenue in the Technology sector.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+industry VARCHAR(50),
+revenue DECIMAL(15, 2),
+profit DECIMAL(15, 2)
+);
+
+INSERT INTO companies (company_id, name, industry, revenue, profit)
+VALUES
+(1, 'Apple', 'Technology', 365000000000, 94680000000),
+(2, 'Microsoft', 'Technology', 198000000000, 72900000000),
+(3, 'Amazon', 'E-commerce', 469800000000, 33240000000),
+(4, 'Tesla', 'Automotive', 53800000000, 5563000000),
+(5, 'Google', 'Technology', 282000000000, 76000000000),
+(6, 'Walmart', 'Retail', 572800000000, 15000000000);
+
+
+
+SELECT
+	name,
+    revenue
+FROM
+	companies
+WHERE 
+	industry = 'Technology'
+	AND
+	revenue = (
+		SELECT 
+			MAX(revenue)
+		FROM
+			companies
+		WHERE
+			industry = 'Technology'
+			AND
+			revenue < (
+				SELECT
+					MAX(revenue)
+				FROM
+					companies
+				WHERE
+					industry = 'Technology'
+			)
+    );
+
+
+-- =====================================================
+-- List all employees of Google who earn above the average salary of employees in the Technology sector.
+-- =====================================================
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE employees (
+employee_id INT PRIMARY KEY,
+name VARCHAR(50),
+company VARCHAR(50),
+sector VARCHAR(50),
+salary DECIMAL(15, 2)
+);
+
+INSERT INTO employees (employee_id, name, company, sector, salary)
+VALUES
+(1, 'Alice', 'Google', 'Technology', 200000.00),
+(2, 'Bob', 'Google', 'Technology', 180000.00),
+(3, 'Charlie', 'Microsoft', 'Technology', 150000.00),
+(4, 'Dave', 'Amazon', 'E-commerce', 170000.00),
+(5, 'Eve', 'Google', 'Technology', 220000.00);
+
+
+
+
+SELECT
+	employee_id,
+    name,
+    salary
+FROM
+	employees
+WHERE
+	company = 'Google'
+	AND 
+	salary > (
+		SELECT
+			AVG(salary)
+		FROM
+			employees
+		WHERE
+			sector = 'Technology'
+    );
+
+
+-- =====================================================
+-- Find all companies that generate more than 10% of the total revenue of their respective industry.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+industry VARCHAR(50),
+revenue DECIMAL(15, 2)
+);
+
+INSERT INTO companies (company_id, name, industry, revenue)
+VALUES
+(1, 'Apple', 'Technology', 365000000000),
+(2, 'Microsoft', 'Technology', 198000000000),
+(3, 'Amazon', 'E-commerce', 469800000000),
+(4, 'Tesla', 'Automotive', 53800000000),
+(5, 'Google', 'Technology', 282000000000),
+(6, 'Walmart', 'Retail', 572800000000);
+
+
+SELECT 
+	name, industry, revenue
+FROM 
+	companies c
+WHERE 
+	revenue > 0.1 * (
+				SELECT 
+					SUM(revenue)
+				FROM 
+					companies
+				WHERE 
+					industry = c.industry
+				);
