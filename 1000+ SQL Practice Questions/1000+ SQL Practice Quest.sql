@@ -1581,3 +1581,247 @@ WHERE
 				WHERE 
 					industry = c.industry
 				);
+
+
+-- =====================================================
+-- List all products sold by Amazon that generate more than 15% of Amazon's total sales.
+-- =====================================================
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS sales;
+
+-- Products table
+CREATE TABLE products (
+product_id INT PRIMARY KEY,
+name VARCHAR(50),
+company VARCHAR(50),
+price DECIMAL(15, 2)
+);
+-- Sales table
+CREATE TABLE sales (
+sale_id INT PRIMARY KEY,
+product_id INT,
+quantity INT,
+FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+-- Sample data for products and sales
+INSERT INTO products (product_id, name, company, price)
+VALUES
+(1, 'Laptop', 'Amazon', 1500),
+(2, 'Smartphone', 'Amazon', 800),
+(3, 'Tablet', 'Amazon', 400),
+(4, 'Headphones', 'Amazon', 100);
+INSERT INTO sales (sale_id, product_id, quantity)
+VALUES
+(1, 1, 100), -- Laptop sales
+(2, 2, 200), -- Smartphone sales
+(3, 3, 150), -- Tablet sales
+(4, 4, 50); -- Headphones sales
+
+-- CTE
+WITH cte AS
+(
+    SELECT
+        p.product_id,
+        p.name,
+        SUM(p.price * s.quantity) AS product_sales
+    FROM products p
+    JOIN sales s
+        ON p.product_id = s.product_id
+    WHERE p.company = 'Amazon'
+    GROUP BY p.product_id, p.name
+)
+
+SELECT *
+FROM cte
+WHERE product_sales >
+(
+    SELECT 0.15 * SUM(product_sales)
+    FROM cte
+);
+
+
+-- Windows function
+SELECT *
+FROM
+(
+    SELECT
+        p.product_id,
+        p.name,
+        SUM(p.price * s.quantity) AS product_sales,
+        SUM(SUM(p.price * s.quantity)) OVER () AS total_sales
+    FROM products p
+    JOIN sales s
+        ON p.product_id = s.product_id
+    WHERE p.company = 'Amazon'
+    GROUP BY p.product_id, p.name
+) t
+WHERE product_sales > 0.15 * total_sales;  
+
+
+-- =====================================================
+-- Find the total number of employees working in each sector and list sectors with more than 1 million employees.
+-- =====================================================
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE employees (
+employee_id INT PRIMARY KEY,
+name VARCHAR(50),
+company VARCHAR(50),
+sector VARCHAR(50),
+salary DECIMAL(15, 2)
+);
+
+INSERT INTO employees (employee_id, name, company, sector, salary)
+VALUES
+(1, 'Alice', 'Google', 'Technology', 200000.00),
+(2, 'Bob', 'Google', 'Technology', 180000.00),
+(3, 'Charlie', 'Microsoft', 'Technology', 150000.00),
+(4, 'Dave', 'Amazon', 'E-commerce', 170000.00),
+(5, 'Eve', 'Google', 'Technology', 220000.00);
+
+
+SELECT
+	sector,
+    COUNT(employee_id) AS total_emp
+FROM
+	employees
+GROUP BY
+	sector
+HAVING
+	total_emp > 1000000;
+
+
+-- =====================================================
+-- Identify the company that has the highest employee-to-revenue ratio.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+revenue DECIMAL(15, 2),
+employees INT
+);
+
+INSERT INTO companies (company_id, name, revenue, employees)
+VALUES
+(1, 'Apple', 365000000000, 147000),
+(2, 'Walmart', 572800000000, 2300000),
+(3, 'Amazon', 469800000000, 1600000),
+(4, 'Tesla', 53800000000, 110000),
+(5, 'Google', 282000000000, 156500);
+
+
+SELECT
+	*,
+    (employees / revenue) AS employee_to_rev
+FROM
+	companies
+ORDER BY
+	employee_to_rev
+LIMIT 1;
+
+
+-- =====================================================
+-- Find the total sales for the top 5 performing products of Apple.
+-- =====================================================
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS sales;
+
+-- Products table
+CREATE TABLE products (
+product_id INT PRIMARY KEY,
+name VARCHAR(50),
+company VARCHAR(50),
+price DECIMAL(15, 2)
+);
+-- Sales table
+CREATE TABLE sales (
+sale_id INT PRIMARY KEY,
+product_id INT,
+quantity INT,
+FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+INSERT INTO products (product_id, name, company, price)
+VALUES
+(1, 'iPhone', 'Apple', 1000),
+(2, 'MacBook Pro', 'Apple', 2500),
+(3, 'iPad', 'Apple', 500),
+(4, 'Apple Watch', 'Apple', 400),
+(5, 'AirPods', 'Apple', 150),
+(6, 'iMac', 'Apple', 1800),
+(7, 'iPhone 13', 'Apple', 1200),
+(8, 'Apple TV', 'Apple', 200);
+
+INSERT INTO sales (sale_id, product_id, quantity)
+VALUES
+(1, 1, 5000), 
+(2, 2, 3000), 
+(3, 3, 7000), 
+(4, 4, 10000),
+(5, 5, 12000), 
+(6, 6, 2000), 
+(7, 7, 4000),
+(8, 8, 8000);
+
+
+SELECT
+    p.product_id,
+    p.name,
+    SUM(p.price * s.quantity) AS total_sales
+FROM products p
+JOIN sales s
+ON p.product_id = s.product_id
+WHERE p.company = 'Apple'
+GROUP BY p.product_id, p.name
+ORDER BY total_sales DESC
+LIMIT 5;
+
+
+-- =====================================================
+-- List all industries where at least 3 companies have profits above the industry average.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+industry VARCHAR(50),
+revenue DECIMAL(15, 2),
+profit DECIMAL(15, 2),
+employees INT
+);
+
+INSERT INTO companies (company_id, name, industry, revenue, profit, employees)
+VALUES
+(1, 'Apple', 'Technology', 365000000000, 94680000000, 147000),
+(2, 'Microsoft', 'Technology', 198000000000, 72900000000, 150000),
+(3, 'Amazon', 'E-commerce', 469800000000, 33240000000, 1600000),
+(4, 'Tesla', 'Automotive', 53800000000, 5563000000, 110000),
+(5, 'Google', 'Technology', 282000000000, 76000000000, 156500),
+(6, 'Walmart', 'Retail', 572800000000, 15000000000, 2300000);
+
+
+WITH cte AS (
+	SELECT
+		industry,
+        AVG(profit) AS avg_profit
+	FROM
+		companies
+	GROUP BY
+		industry
+)
+SELECT
+	c.industry,
+    c.profit,
+    t.avg_profit
+FROM
+	companies c
+JOIN 
+	cte t
+ON c.industry = t.industry
+GROUP BY 
+	c.industry
+HAVING
+	COUNT(c.company_id) >= 3;
