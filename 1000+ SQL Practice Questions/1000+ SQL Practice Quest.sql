@@ -1825,3 +1825,104 @@ GROUP BY
 	c.industry
 HAVING
 	COUNT(c.company_id) >= 3;
+
+
+-- =====================================================
+-- Find the year with the highest number of new patents filed by Microsoft. 61
+-- =====================================================
+DROP TABLE IF EXISTS patents;
+
+CREATE TABLE patents (
+patent_id INT PRIMARY KEY,
+company VARCHAR(50),
+filing_year INT
+);
+
+INSERT INTO patents (patent_id, company, filing_year)
+VALUES
+(1, 'Microsoft', 2021),
+(2, 'Microsoft', 2020),
+(3, 'Microsoft', 2020),
+(4, 'Apple', 2021),
+(5, 'Microsoft', 2021);
+
+
+SELECT
+	company,
+	COUNT(patent_id) AS total_patents,
+    filing_year
+FROM
+	patents
+WHERE
+	company = 'Microsoft'
+GROUP BY
+	filing_year
+LIMIT 1;
+
+
+-- =====================================================
+-- List all companies whose profit margin (profit/revenue) exceeds the average margin across all companies.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+revenue DECIMAL(15, 2),
+profit DECIMAL(15, 2)
+);
+
+INSERT INTO companies (company_id, name, revenue, profit)
+VALUES
+(1, 'Apple', 365000000000, 94680000000),
+(2, 'Microsoft', 198000000000, 72900000000),
+(3, 'Amazon', 469800000000, 33240000000),
+(4, 'Tesla', 53800000000, 5563000000),
+(5, 'Google', 282000000000, 76000000000),
+(6, 'Walmart', 572800000000, 15000000000);
+
+
+WITH cte AS (
+	SELECT 
+		AVG(profit / revenue) AS avg_margin
+	FROM companies
+)
+SELECT 
+	name
+FROM 
+	companies
+WHERE 
+	(profit / revenue) > (SELECT avg_margin FROM cte);
+
+
+-- =====================================================
+-- Identify the city where Tesla has the maximum number of sales.
+-- =====================================================
+DROP TABLE IF EXISTS sales;
+
+CREATE TABLE sales (
+sale_id INT PRIMARY KEY,
+company VARCHAR(50),
+city VARCHAR(50),
+units_sold INT
+);
+
+INSERT INTO sales (sale_id, company, city, units_sold)
+VALUES
+(1, 'Tesla', 'Los Angeles', 1000),
+(2, 'Tesla', 'New York', 1200),
+(3, 'Tesla', 'San Francisco', 1500),
+(4, 'Tesla', 'Chicago', 900);
+
+
+SELECT 
+	city
+FROM 
+	sales
+WHERE 
+	company = 'Tesla'
+GROUP BY 
+	city
+ORDER BY 
+	SUM(units_sold) DESC
+LIMIT 1;
