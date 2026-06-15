@@ -1926,3 +1926,491 @@ GROUP BY
 ORDER BY 
 	SUM(units_sold) DESC
 LIMIT 1;
+
+
+-- =====================================================
+-- Fill the Null value with last non NULL value
+-- =====================================================
+
+DROP TABLE IF EXISTS stock_table;
+
+
+CREATE TABLE stock_table (
+    DateKey DATE,
+    StocksName VARCHAR(50),
+    Price INT
+);
+
+
+INSERT INTO stock_table (DateKey, StocksName, Price)
+VALUES
+('2023-01-01', 'Infosys', 1400),
+('2023-01-02', 'Infosys', NULL),
+('2023-01-03', 'Infosys', 1450),
+('2023-01-04', 'Infosys', NULL),
+('2023-01-05', 'Infosys', NULL),
+('2023-01-01', 'Reliance', 2300),
+('2023-01-02', 'Reliance', NULL);
+
+WITH cte AS (
+	SELECT
+		DateKey,
+        StocksName,
+        Price,
+		COUNT(Price) OVER(PARTITION BY StocksName ORDER BY DateKey) AS cnt
+	FROM
+		stock_table
+)
+
+SELECT
+    DateKey,
+    StocksName,
+    Price,
+    MAX(Price) OVER (
+        PARTITION BY StocksName, cnt
+    ) AS Derived_Price
+FROM cte
+ORDER BY StocksName, DateKey;
+
+
+-- =====================================================
+-- List all employees who earn above the 90th percentile in their company.
+-- =====================================================
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE employees (
+employee_id INT PRIMARY KEY,
+name VARCHAR(50),
+company VARCHAR(50),
+salary DECIMAL(15, 2)
+);
+
+INSERT INTO employees (employee_id, name, company, salary)
+VALUES
+(1, 'Alice', 'Apple', 200000.00),
+(2, 'Bob', 'Apple', 180000.00),
+(3, 'Charlie', 'Apple', 150000.00),
+(4, 'Dave', 'Apple', 250000.00),
+(5, 'Eve', 'Google', 220000.00),
+(6, 'Frank', 'Google', 190000.00),
+(7, 'Grace', 'Google', 170000.00),
+(8, 'Hank', 'Google', 210000.00);
+
+
+WITH cte AS (
+    SELECT
+        name,
+        company,
+        salary,
+        PERCENT_RANK() OVER ( PARTITION BY company ORDER BY salary) AS pct_rank
+    FROM employees
+)
+SELECT *
+FROM cte
+WHERE pct_rank >= 0.9;
+
+
+-- =====================================================
+-- Rank the top 3 industries by total profit and list the companies contributing to those profits.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+industry VARCHAR(50),
+revenue DECIMAL(15, 2),
+profit DECIMAL(15, 2)
+);
+
+INSERT INTO companies (company_id, name, industry, revenue, profit)
+VALUES
+(1, 'Apple', 'Technology', 365000000000, 94680000000),
+(2, 'Microsoft', 'Technology', 198000000000, 72900000000),
+(3, 'Amazon', 'E-commerce', 469800000000, 33240000000),
+(4, 'Tesla', 'Automotive', 53800000000, 5563000000),
+(5, 'Google', 'Technology', 282000000000, 76000000000),
+(6, 'Walmart', 'Retail', 572800000000, 15000000000);
+
+-- Windows Function
+WITH cte AS (
+    SELECT
+        name,
+        industry,
+        revenue,
+        profit,
+        
+        SUM(profit) OVER(
+            PARTITION BY industry
+        ) AS total_profit
+    FROM companies
+),
+
+ranked AS (
+    SELECT *,
+           DENSE_RANK() OVER(
+               ORDER BY total_profit DESC
+           ) AS rnk
+    FROM cte
+)
+
+SELECT
+    name,
+    industry,
+    revenue,
+    profit,
+    total_profit
+FROM ranked
+WHERE rnk <= 3
+ORDER BY total_profit DESC, profit DESC;
+
+
+-- CTE
+WITH IndustryProfit AS (
+	SELECT industry, 
+		SUM(profit) AS total_profit
+	FROM 
+		companies
+	GROUP BY 
+		industry
+	ORDER BY 
+		total_profit DESC
+	LIMIT 3
+)
+SELECT 
+	c.industry, 
+    c.name, 
+    c.profit
+FROM 
+	companies c
+JOIN 
+	IndustryProfit ip 
+    ON c.industry = ip.industry
+ORDER BY 
+	ip.total_profit DESC, c.profit DESC;
+
+
+-- =====================================================
+-- Find the company that has the highest revenue per employee in the Retail sector.
+-- =====================================================
+DROP TABLE IF EXISTS companies;
+
+CREATE TABLE companies (
+company_id INT PRIMARY KEY,
+name VARCHAR(50),
+revenue DECIMAL(15, 2),
+employees INT,
+sector VARCHAR(50)
+);
+
+INSERT INTO companies (company_id, name, revenue, employees, sector)
+VALUES
+(1, 'Apple', 365000000000, 147000, 'Technology'),
+(2, 'Walmart', 572800000000, 2300000, 'Retail'),
+(3, 'Amazon', 469800000000, 1600000, 'E-commerce'),
+(4, 'Tesla', 53800000000, 110000, 'Automotive'),
+(5, 'Google', 282000000000, 156500, 'Technology'),
+(6, 'Target', 78000000000, 400000, 'Retail');
+
+
+SELECT
+	name,
+    sector,
+    (revenue / employees) AS rev_per_emp
+FROM
+	companies
+WHERE
+	sector = 'Retail'
+ORDER BY
+	rev_per_emp DESC
+LIMIT 1;
+
+
+-- =====================================================
+-- Identify the quarter in which Apple generated its highest revenue for 2024.
+-- =====================================================
+DROP TABLE IF EXISTS quarterly_revenue;
+
+CREATE TABLE quarterly_revenue (
+id INT PRIMARY KEY,
+company VARCHAR(50),
+quarter VARCHAR(10),
+revenue DECIMAL(15, 2)
+);
+
+INSERT INTO quarterly_revenue (id, company, quarter, revenue)
+VALUES
+(1, 'Apple', 'Q1', 100000000000),
+(2, 'Apple', 'Q2', 95000000000),
+(3, 'Apple', 'Q3', 110000000000),
+(4, 'Apple', 'Q4', 115000000000);
+
+
+SELECT 
+	quarter, 
+    revenue
+FROM 
+	quarterly_revenue
+WHERE 
+	company = 'Apple'
+ORDER BY 
+	revenue DESC
+LIMIT 1;
+
+
+-- =====================================================
+-- Identify products from Amazon that had declining sales over the last 3 quarters.
+-- =====================================================
+DROP TABLE IF EXISTS quarterly_revenue;
+
+CREATE TABLE quarterly_revenue (
+id INT PRIMARY KEY,
+company VARCHAR(50),
+product_name VARCHAR(50),
+quarter VARCHAR(10),
+revenue DECIMAL(15, 2)
+);
+
+INSERT INTO quarterly_revenue (id, company, product_name, quarter, revenue
+)
+VALUES
+(1, 'Amazon', 'Laptop', 'Q1', 150000.00),
+(2, 'Amazon', 'Laptop', 'Q2', 130000.00),
+(3, 'Amazon', 'Laptop', 'Q3', 120000.00),
+(4, 'Amazon', 'Smartphone', 'Q1', 250000.00),
+(5, 'Amazon', 'Smartphone', 'Q2', 240000.00),
+(6, 'Amazon', 'Smartphone', 'Q3', 230000.00),
+(7, 'Amazon', 'Headphones', 'Q1', 50000.00),
+(8, 'Amazon', 'Headphones', 'Q2', 52000.00),
+(9, 'Amazon', 'Headphones', 'Q3', 51000.00);
+
+
+with cte AS(
+	SELECT
+		company,
+        product_name,
+        quarter,
+        revenue,
+        LAG(revenue, 1) OVER(PARTITION BY company, product_name ORDER BY quarter) AS prev_qua_rev,
+        LAG(revenue, 2) OVER(PARTITION BY company, product_name ORDER BY quarter) AS prev_qua2_rev
+	FROM 
+		quarterly_revenue
+	WHERE 
+		company = 'Amazon'
+)
+SELECT
+	company,
+    product_name
+FROM
+	cte
+WHERE
+	revenue < prev_qua_rev 
+    AND
+    prev_qua_rev < prev_qua2_rev
+GROUP BY
+	company, product_name;
+
+
+-- =====================================================
+-- Find the total revenue and profit for each company for the last 4 quarters, sorted by profit in descending order.
+-- =====================================================
+DROP TABLE IF EXISTS quarterly_revenue;
+
+
+CREATE TABLE quarterly_revenue (
+id INT PRIMARY KEY,
+company VARCHAR(50),
+quarter VARCHAR(10),
+revenue DECIMAL(15, 2),
+profit DECIMAL(15, 2) -- Assuming 20% of revenue as profit
+);
+INSERT INTO quarterly_revenue (id, company, quarter, revenue, profit)
+VALUES
+(1, 'Apple', 'Q1', 100000000000, 20000000000), 
+(2, 'Apple', 'Q2', 95000000000, 19000000000),
+(3, 'Apple', 'Q3', 110000000000, 22000000000),
+(4, 'Apple', 'Q4', 115000000000, 23000000000),
+(5, 'Microsoft', 'Q1', 90000000000, 18000000000),
+(6, 'Microsoft', 'Q2', 95000000000, 19000000000),
+(7, 'Microsoft', 'Q3', 100000000000, 20000000000),
+(8, 'Microsoft', 'Q4', 105000000000, 21000000000),
+(9, 'Amazon', 'Q1', 80000000000, 16000000000),
+(10, 'Amazon', 'Q2', 85000000000, 17000000000),
+(11, 'Amazon', 'Q3', 90000000000, 18000000000),
+(12, 'Amazon', 'Q4', 95000000000, 19000000000);
+
+
+SELECT
+	company,
+    SUM(revenue) AS total_revenue,
+    SUM(profit) AS total_profit
+FROM
+	quarterly_revenue
+GROUP BY
+	company
+ORDER BY
+	total_profit DESC;
+
+
+-- =====================================================
+-- Rank all employees at Deloitte based on their monthly performance score.
+-- =====================================================
+DROP TABLE IF EXISTS performance;
+
+CREATE TABLE performance (
+employee_id INT PRIMARY KEY,
+employee_name VARCHAR(100),
+department VARCHAR(50),
+performance_score INT
+);
+
+INSERT INTO performance VALUES
+(1, 'Alice Smith', 'Finance', 90),
+(2, 'John Doe', 'Finance', 85),
+(3, 'Emma Wilson', 'IT', 95),
+(4, 'Liam Brown', 'IT', 89),
+(5, 'Sophia Johnson', 'Finance', 87);
+
+
+SELECT 
+	employee_name,
+    department,
+    DENSE_RANK() OVER(ORDER BY performance_score DESC) AS rnk
+FROM
+	performance;
+
+
+-- =====================================================
+-- Write a SQL query to find the customer who made the most recent order.
+-- =====================================================
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS orders;
+
+CREATE TABLE customers (
+customer_id INT PRIMARY KEY,
+customer_name VARCHAR(100)
+);
+CREATE TABLE orders (
+order_id INT PRIMARY KEY,
+customer_id INT,
+amount DECIMAL(10, 2),
+order_date DATE,
+FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+-- Sample data insertions
+INSERT INTO customers (customer_id, customer_name) VALUES
+(1, 'Anjali'),
+(2, 'Rohan'),
+(3, 'Suresh'),
+(4, 'Priya'),
+(5, 'Rahul');
+INSERT INTO orders (order_id, customer_id, amount, order_date) VALUES
+(1, 1, 2500, '2023-01-01'),
+(2, 2, 3000, '2023-01-02'),
+(3, 1, 1500, '2023-02-03'),
+(4, 3, 4000, '2023-02-12'),
+(5, 1, 3000, '2023-01-05'),
+(6, 2, 4500, '2023-01-06'),
+(7, 4, 5000, '2023-01-07'),
+(8, 5, 2000, '2023-01-08');
+
+
+SELECT
+	c.customer_id,
+    o.order_date
+FROM
+	customers c
+JOIN
+	orders o
+ON c.customer_id = o.customer_id
+ORDER BY
+	o.order_date DESC
+LIMIT 1;
+
+
+-- =====================================================
+-- Find Companies whose revenue grew more than 10% year-over-year consistently.
+-- =====================================================
+DROP TABLE IF EXISTS quarterly_revenue;
+
+CREATE TABLE quarterly_revenue (
+    company VARCHAR(50),
+    quarter DATE,
+    revenue INT
+);
+
+INSERT INTO quarterly_revenue VALUES
+('Amazon','2022-03-31',100),
+('Amazon','2022-06-30',120),
+('Amazon','2022-09-30',140),
+('Amazon','2022-12-31',160),
+
+('Amazon','2023-03-31',120),
+('Amazon','2023-06-30',150),
+('Amazon','2023-09-30',170),
+('Amazon','2023-12-31',200),
+
+('Google','2022-03-31',200),
+('Google','2022-06-30',220),
+('Google','2022-09-30',240),
+('Google','2022-12-31',260),
+
+('Google','2023-03-31',205),
+('Google','2023-06-30',225),
+('Google','2023-09-30',250),
+('Google','2023-12-31',270);
+
+
+-- Using CTE and Self join
+with cte AS(
+	SELECT
+		a.company,
+        a.quarter,
+        a.revenue AS current_revenue,
+        b.revenue AS prev_yr_revneue,
+        ((a.revenue - b.revenue) * 100 / a.revenue) AS growth_rev
+	FROM
+		quarterly_revenue a
+	JOIN
+		quarterly_revenue b
+	ON
+		a.company = b.company
+        AND
+        EXTRACT(YEAR FROM a.quarter) = EXTRACT(YEAR FROM b.quarter) + 1
+        AND
+		EXTRACT(QUARTER FROM a.quarter) = EXTRACT(QUARTER FROM b.quarter)
+)
+SELECT
+	company
+FROM
+	cte
+GROUP BY
+	company
+HAVING
+	COUNT(quarter) = 4
+    AND
+    MIN(growth_rev) > 10;
+
+
+-- Using windows function
+with cte AS(
+	SELECT
+		company,
+        quarter,
+        revenue,
+        LAG(revenue, 4) OVER(PARTITION BY company ORDER BY quarter) AS prev_year_revenue
+	FROM
+		quarterly_revenue
+)
+SELECT
+	company
+FROM
+	cte
+WHERE
+	prev_year_revenue IS NOT NULL
+GROUP BY
+	company
+HAVING
+	MIN(
+		((revenue - prev_year_revenue) * 100 / revenue)
+    ) > 10;
