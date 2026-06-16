@@ -2414,3 +2414,234 @@ HAVING
 	MIN(
 		((revenue - prev_year_revenue) * 100 / revenue)
     ) > 10;
+
+
+-- =====================================================
+-- List all customers who have made purchases in all product categories and the total amount they spent.
+-- =====================================================
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS purchases;
+
+CREATE TABLE customers (
+customer_id INT,
+customer_name VARCHAR(100)
+);
+CREATE TABLE products (
+product_id INT,
+product_name VARCHAR(100),
+category_id INT,
+price DECIMAL(10, 2)
+);
+CREATE TABLE purchases (
+purchase_id INT,
+customer_id INT,
+product_id INT
+);
+-- Sample data insertions
+INSERT INTO customers VALUES
+(1, 'Alice'),
+(2, 'Bob'),
+(3, 'Charlie');
+INSERT INTO products VALUES
+(1, 'Laptop', 1, 800),
+(2, 'Smartphone', 1, 600),
+(3, 'Book', 2, 20),
+(4, 'Headphones', 1, 150);
+INSERT INTO purchases VALUES
+(1, 1, 1),
+(2, 1, 2),
+(3, 1, 3),
+(4, 2, 2),
+(5, 2, 3),
+(6, 3, 1),
+(7, 3, 2),
+(8, 3, 4);
+
+
+SELECT
+	c.customer_id,
+    SUM(d.price) AS total_amount
+FROM
+	customers c
+JOIN
+	purchases p
+    ON c.customer_id = p.customer_id
+JOIN
+	products d
+    ON p.product_id = d.product_id
+GROUP BY
+	c.customer_id
+HAVING
+	COUNT(DISTINCT d.category_id) = (
+		SELECT
+			COUNT(DISTINCT category_id)
+		FROM
+			products
+    );
+
+		
+-- =====================================================
+-- Identify the top 3 employees with the highest salaries within each department at PwC.
+-- =====================================================
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE employees (
+employee_id INT PRIMARY KEY,
+employee_name VARCHAR(100),
+department VARCHAR(50),
+salary DECIMAL(10, 2)
+);
+
+INSERT INTO employees VALUES
+(1, 'Chris Martin', 'Consulting', 85000.00),
+(2, 'Jennifer Lewis', 'Finance', 92000.00),
+(3, 'Emily Taylor', 'Finance', 88000.00),
+(4, 'Michael Scott', 'Consulting', 78000.00),
+(5, 'David Lee', 'Finance', 95000.00);
+
+
+WITH RankedEmployees AS (
+    SELECT
+        employee_id,
+        employee_name,
+        department,
+        salary,
+        DENSE_RANK() OVER(PARTITION BY department ORDER BY salary DESC) AS rnk
+    FROM employees
+)
+SELECT *
+FROM RankedEmployees
+WHERE rnk <= 3;
+
+
+-- =====================================================
+-- Find the latest order placed by each customer.
+-- =====================================================
+DROP TABLE IF EXISTS orders;
+
+CREATE TABLE orders (
+    customer_id INT,
+    order_id INT,
+    order_date DATE
+);
+
+INSERT INTO orders (customer_id, order_id, order_date)
+VALUES
+(1, 101, '2024-01-01'),
+(1, 102, '2024-02-01'),
+(1, 103, '2024-02-01'),
+(2, 201, '2024-03-01'),
+(2, 202, '2024-01-15'),
+(3, 301, '2024-04-10'),
+(3, 302, '2024-04-10');
+
+
+WITH cte AS (
+    SELECT
+        customer_id,
+        order_id,
+        order_date,
+        ROW_NUMBER() OVER(PARTITION BY customer_id ORDER BY order_date DESC, order_id DESC) AS rn
+    FROM orders
+)
+SELECT *
+FROM cte
+WHERE rn = 1;
+
+
+-- =====================================================
+-- Determine the total number of unique suppliers used by both Barclays and HSBC in the same year.
+-- =====================================================
+DROP TABLE IF EXISTS suppliers;
+DROP TABLE IF EXISTS contracts;
+
+CREATE TABLE suppliers (
+supplier_id INT PRIMARY KEY,
+supplier_name VARCHAR(100)
+);
+CREATE TABLE contracts (
+contract_id INT PRIMARY KEY,
+supplier_id INT,
+company VARCHAR(50),
+contract_date DATE
+);
+
+INSERT INTO suppliers VALUES
+(1, 'Tech Supplies Ltd'),
+(2, 'Finance Services Ltd');
+INSERT INTO contracts VALUES
+(1, 1, 'Barclays', '2023-02-10'),
+(2, 1, 'HSBC', '2023-02-25');
+
+
+WITH common_suppliers AS (
+    SELECT
+        EXTRACT(YEAR FROM contract_date) AS contract_year,
+        supplier_id
+    FROM 
+		contracts
+    WHERE 
+		company IN ('Barclays', 'HSBC')
+    GROUP BY
+        EXTRACT(YEAR FROM contract_date),
+        supplier_id
+    HAVING 
+		COUNT(DISTINCT company) = 2
+)
+SELECT
+    contract_year,
+    COUNT(DISTINCT supplier_id) AS total_unique_suppliers
+FROM 
+	common_suppliers
+GROUP BY 
+	contract_year
+ORDER BY 
+	contract_year;
+
+
+-- =====================================================
+-- Write a SQL query to find customers who have ordered more than once and their total spending.
+-- =====================================================
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS orders;
+
+CREATE TABLE customers (
+customer_id INT PRIMARY KEY,
+customer_name VARCHAR(100)
+);
+CREATE TABLE orders (
+order_id INT PRIMARY KEY,
+customer_id INT,
+amount DECIMAL(10, 2),
+order_date DATE,
+FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+-- Sample data insertions
+INSERT INTO customers (customer_id, customer_name) VALUES
+(1, 'Anjali'),
+(2, 'Rohan'),
+(3, 'Suresh'),
+(4, 'Priya'),
+(5, 'Rahul');
+INSERT INTO orders (order_id, customer_id, amount, order_date) VALUES
+(1, 1, 2500, '2023-01-01'),
+(2, 1, 3000, '2023-01-02'),
+(3, 2, 4500, '2023-01-05'),
+(4, 3, 4000, '2023-01-12'),
+(5, 1, 1500, '2023-01-15'),
+(6, 2, 3500, '2023-01-20');
+
+
+SELECT
+	c.customer_id,
+    SUM(o.amount) AS total_spending
+FROM
+	customers c
+JOIN
+	orders o
+	ON c.customer_id = o.customer_id
+GROUP BY
+	c.customer_id
+HAVING
+	COUNT(o.order_id) > 1;
