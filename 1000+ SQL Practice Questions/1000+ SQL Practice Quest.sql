@@ -2645,3 +2645,288 @@ GROUP BY
 	c.customer_id
 HAVING
 	COUNT(o.order_id) > 1;
+
+
+-- =====================================================
+-- Find the top 5 products with the highest average rating in each category, including their manufacturer and the number of reviews.
+-- =====================================================
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS reviews;
+
+CREATE TABLE products (
+product_id INT,
+product_name VARCHAR(100),
+category_id INT,
+manufacturer VARCHAR(100)
+);
+CREATE TABLE reviews (
+review_id INT,
+product_id INT,
+rating DECIMAL(2, 1)
+);
+-- Sample data insertions
+INSERT INTO products VALUES
+(1, 'Laptop', 1, 'BrandA'),
+(2, 'Smartphone', 1, 'BrandB'),
+(3, 'Tablet', 2, 'BrandC'),
+(4, 'Headphones', 2, 'BrandA'),
+(5, 'Smartwatch', 3, 'BrandD');
+INSERT INTO reviews VALUES
+(1, 1, 4.5),
+(2, 1, 4.7),
+(3, 2, 4.3),
+(4, 2, 4.8),
+(5, 3, 4.0),
+(6, 3, 4.5),
+(7, 4, 4.8),
+(8, 5, 4.2);
+
+
+WITH cte AS (
+	SELECT
+		p.product_id,
+        p.product_name,
+        p.category_id,
+        p.manufacturer,
+        AVG(r.rating) AS avg_rating,
+        COUNT(r.review_id) AS num_of_review,
+        DENSE_RANK() OVER(PARTITION BY p.category_id ORDER BY AVG(r.rating) DESC) AS rnk
+	FROM 
+		products p
+	JOIN 
+		reviews r
+        ON p.product_id = r.product_id
+	GROUP BY
+		p.product_id,
+        p.category_id,
+        p.manufacturer
+)
+SELECT
+	product_id,
+	product_name,
+	category_id,
+	manufacturer,
+	avg_rating,
+    num_of_review
+FROM
+	cte
+WHERE 
+	rnk <= 5
+ORDER BY 
+	category_id, rnk;
+
+
+-- =====================================================
+-- Find all employees who have not taken any training sessions in the last year and the number of projects they are currently assigned to.
+-- =====================================================
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS traning_sessions;
+DROP TABLE IF EXISTS projects;
+
+CREATE TABLE employees (
+employee_id INT,
+employee_name VARCHAR(100)
+);
+CREATE TABLE training_sessions (
+session_id INT,
+employee_id INT,
+training_date DATE
+);
+CREATE TABLE projects (
+project_id INT,
+employee_id INT
+);
+-- Sample data insertions
+INSERT INTO employees VALUES
+(1, 'John'),
+(2, 'Jane'),
+(3, 'Mark'),
+(4, 'Lucy');
+INSERT INTO training_sessions VALUES
+(1, 1, '2022-01-10'),
+(2, 1, '2021-06-15'),
+(3, 2, '2023-02-20'),
+(4, 2, '2021-11-01');
+INSERT INTO projects VALUES
+(1, 1),
+(2, 1),
+(3, 2),
+(4, 3);
+
+
+SELECT 
+	e.employee_name, 
+    COUNT(p.project_id) AS num_projects
+FROM 
+	employees e
+LEFT JOIN 
+	training_sessions t 
+		ON e.employee_id = t.employee_id
+		AND t.training_date >= CURDATE() - INTERVAL 1 YEAR
+LEFT JOIN 
+	projects p 
+    ON e.employee_id = p.employee_id
+WHERE 
+		t.session_id IS NULL 
+GROUP BY 
+	e.employee_id, e.employee_name
+ORDER BY 
+	e.employee_name;
+
+
+-- =====================================================
+-- Write an SQL query to find the name of the product with the highest price in each country.
+-- =====================================================
+DROP TABLE IF EXISTS suppliers;
+DROP TABLE IF EXISTS products;
+
+CREATE TABLE suppliers(
+supplier_id INT PRIMARY KEY,
+supplier_name VARCHAR(25),
+country VARCHAR(25)
+);
+INSERT INTO suppliers
+VALUES
+(501, 'alan', 'India'),
+(502, 'rex', 'US'),
+(503, 'dodo', 'India'),
+(504, 'rahul', 'US'),
+(505, 'zara', 'Canada'),
+(506, 'max', 'Canada');
+CREATE TABLE products(
+product_id INT PRIMARY KEY,
+product_name VARCHAR(25),
+supplier_id INT,
+price FLOAT,
+FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id)
+);
+INSERT INTO products
+VALUES
+(201, 'iPhone 14', 501, 1299),
+(202, 'iPhone 8', 502, 999),
+(204, 'iPhone 13', 502, 1199),
+(203, 'iPhone 11', 503, 1199),
+(205, 'iPhone 12', 502, 1199),
+(206, 'iPhone 14', 501, 1399),
+(214, 'iPhone 15', 503, 1499),
+(207, 'iPhone 15', 505, 1499),
+(208, 'iPhone 15', 504, 1499),
+(209, 'iPhone 12', 502, 1299),
+(210, 'iPhone 13', 502, 1199),
+(211, 'iPhone 11', 501, 1099),
+(212, 'iPhone 14', 503, 1399),
+(213, 'iPhone 8', 502, 1099),
+(222, 'Samsung Galaxy S21', 504, 1699),
+(223, 'Samsung Galaxy S20', 505, 1899),
+(224, 'Google Pixel 6', 501, 899),
+(225, 'Google Pixel 5', 502, 799),
+(226, 'OnePlus 9 Pro', 503, 1699),
+(227, 'OnePlus 9', 502, 1999),
+(228, 'Xiaomi Mi 11', 501, 899),
+(229, 'Xiaomi Mi 10', 504, 699),
+(230, 'Huawei P40 Pro', 505, 1099),
+(231, 'Huawei P30', 502, 1299),
+(232, 'Sony Xperia 1 III', 503, 1199),
+(233, 'Sony Xperia 5 III', 501, 999),
+(234, 'LG Velvet', 505, 1899),
+(235, 'LG G8 ThinQ', 504, 799),
+(236, 'Motorola Edge Plus', 502, 1099),
+(237, 'Motorola One 5G', 501, 799),
+(238, 'ASUS ROG Phone 5', 503, 1999),
+(239, 'ASUS ZenFone 8', 504, 999),
+(240, 'Nokia 8.3 5G', 502, 899),
+(241, 'Nokia 7.2', 501, 699),
+(242, 'BlackBerry Key2', 504, 1899),
+(243, 'BlackBerry Motion', 502, 799),
+(244, 'HTC U12 Plus', 501, 899),
+(245, 'HTC Desire 20 Pro', 505, 699),
+(246, 'Lenovo Legion Phone Duel', 503, 1499),
+(247, 'Lenovo K12 Note', 504, 1499),
+(248, 'ZTE Axon 30 Ultra', 501, 1299),
+(249, 'ZTE Blade 20', 502, 1599),
+(250, 'Oppo Find X3 Pro', 503, 1999);
+
+
+WITH RankedProducts AS (
+    SELECT
+        p.product_name,
+        p.price,
+        s.country,
+        ROW_NUMBER() OVER (
+            PARTITION BY s.country
+            ORDER BY p.price DESC
+        ) AS rnk
+    FROM products p
+    JOIN suppliers s
+        ON p.supplier_id = s.supplier_id
+)
+SELECT
+    product_name,
+    price,
+    country
+FROM RankedProducts
+WHERE rnk = 1;
+
+
+-- =====================================================
+-- Number of unique locations visited, location with the maximum signals and Total number of signals for that device.
+-- =====================================================
+DROP TABLE IF EXISTS device_location;
+
+CREATE TABLE device_location (
+    device_id INT,
+    locations VARCHAR(50)
+);
+
+INSERT INTO device_location (device_id, locations)
+VALUES
+(12, 'Bangalore'),
+(12, 'Bangalore'),
+(12, 'Bangalore'),
+(12, 'Bangalore'),
+(12, 'Hosur'),
+(12, 'Hosur'),
+(13, 'Hyderabad'),
+(13, 'Hyderabad'),
+(13, 'Secunderabad'),
+(13, 'Secunderabad'),
+(13, 'Secunderabad');
+
+WITH location_count AS
+(
+    SELECT
+        device_id,
+        locations,
+        COUNT(*) AS signal_count
+    FROM device_location
+    GROUP BY device_id, locations
+),
+ranked AS
+(
+    SELECT
+        device_id,
+        locations,
+        signal_count,
+
+        ROW_NUMBER() OVER(
+            PARTITION BY device_id
+            ORDER BY signal_count DESC
+        ) AS rn,
+
+        COUNT(*) OVER(
+            PARTITION BY device_id
+        ) AS no_of_locations,
+
+        SUM(signal_count) OVER(
+            PARTITION BY device_id
+        ) AS no_of_signals
+    FROM location_count
+)
+
+SELECT
+    device_id,
+    no_of_locations,
+    locations AS max_signal_location,
+    no_of_signals
+FROM ranked
+WHERE rn = 1;
