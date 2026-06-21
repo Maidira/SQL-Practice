@@ -2930,3 +2930,298 @@ SELECT
     no_of_signals
 FROM ranked
 WHERE rn = 1;
+
+
+-- =====================================================
+-- Write an SQL query to calculate the difference between the highest salaries in the marketing and engineering departments. Output the absolute difference in salaries.
+-- =====================================================
+DROP TABLE IF EXISTS salaries;
+
+CREATE TABLE Salaries (
+emp_name VARCHAR(50),
+department VARCHAR(50),
+salary INT,
+PRIMARY KEY (emp_name, department)
+);
+
+INSERT INTO Salaries (emp_name, department, salary) VALUES
+('Kathy', 'Engineering', 50000),
+('Roy', 'Marketing', 30000),
+('Charles', 'Engineering', 45000),
+('Jack', 'Engineering', 85000),
+('Benjamin', 'Marketing', 34000),
+('Anthony', 'Marketing', 42000),
+('Edward', 'Engineering', 102000),
+('Terry', 'Engineering', 44000),
+('Evelyn', 'Marketing', 53000),
+('Arthur', 'Engineering', 32000);
+
+-- Using CTE and Cross join
+with mark_sal AS(
+	SELECT
+		MAX(salary) AS mark_max
+	FROM
+		Salaries
+	WHERE
+		department = 'Marketing'
+),
+eng_sal AS(
+	SELECT
+		MAX(salary) AS eng_max
+	FROM
+		Salaries
+	WHERE
+		department = 'Engineering'
+)
+SELECT
+	ABS(mark_max - eng_max) AS sal_diff
+FROM
+	mark_sal
+CROSS JOIN eng_sal;
+
+-- Using subquery
+SELECT
+    ABS(
+        MAX(CASE WHEN department = 'Marketing' THEN salary END)
+        -
+        MAX(CASE WHEN department = 'Engineering' THEN salary END)
+    ) AS salary_difference
+FROM Salaries;
+
+
+-- =====================================================
+-- Write an SQL query to find the average order amount for male and female customers separately. Return the results with 2 decimal points.
+-- =====================================================
+DROP TABLE IF EXISTS customers; 
+DROP TABLE IF EXISTS orders; 
+
+CREATE TABLE customers (
+customer_id INT PRIMARY KEY,
+customer_name VARCHAR(255),
+age INT,
+gender VARCHAR(10)
+);
+
+CREATE TABLE orders (
+order_id INT PRIMARY KEY,
+customer_id INT,
+order_date DATE,
+total_amount DECIMAL(10, 2),
+FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+INSERT INTO customers (customer_id, customer_name, age, gender)
+VALUES
+(1, 'John Doe', 30, 'Male'),
+(2, 'Jane Smith', 25, 'Female'),
+(3, 'Alice Johnson', 35, 'Female'),
+(4, 'Bob Brown', 40, 'Male');
+
+INSERT INTO orders (order_id, customer_id, order_date, total_amount)
+VALUES
+(101, 1, '2023-01-15', 150.50),
+(102, 2, '2022-02-20', 200.25),
+(103, 3, '2023-03-10', 180.75),
+(104, 4, '2023-04-05', 300.00),
+(105, 1, '2022-05-12', 175.80),
+(106, 2, '2021-06-18', 220.40),
+(107, 3, '2023-07-22', 190.30),
+(108, 4, '2023-08-30', 250.60),
+(109, 4, '2021-08-30', 250.60),
+(110, 4, '2024-01-30', 250.60),
+(111, 4, '2023-08-30', 250.60);
+
+
+SELECT
+	c.gender,
+    ROUND(AVG(o.total_amount) , 2) AS avg_order_amount
+FROM
+	customers c
+JOIN
+	orders o
+	ON c.customer_id = o.customer_id
+GROUP BY
+	c.gender;
+
+
+-- =====================================================
+-- Write an SQL query to obtain the third transaction of every user. Output the user id, spend, and transaction date.
+-- =====================================================
+DROP TABLE IF EXISTS transactions;
+
+CREATE TABLE transactions (
+user_id INTEGER,
+spend DECIMAL(10, 2),
+transaction_date TIMESTAMP
+);
+
+INSERT INTO transactions (user_id, spend, transaction_date) VALUES
+(111, 100.50, '2022-01-08 12:00:00'),
+(111, 55.00, '2022-01-10 12:00:00'),
+(121, 36.00, '2022-01-18 12:00:00'),
+(145, 24.99, '2022-01-26 12:00:00'),
+(111, 89.60, '2022-02-05 12:00:00');
+
+
+with cte AS(
+	SELECT
+		user_id,
+        spend,
+        transaction_date,
+		ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY transaction_date) AS tran_num
+	FROM
+		transactions
+)
+SELECT
+	user_id,
+	spend,
+	transaction_date,
+	tran_num
+FROM
+	cte
+WHERE
+	tran_num = 3;
+
+
+-- =====================================================
+-- Find the top 5 products whose revenue has decreased in comparison to the previous year (both 2022 and 2023). Return the product name, revenue for the previous year, revenue for the current year, revenue decreased, and the decreased ratio (percentage).
+-- =====================================================
+DROP TABLE IF EXISTS product_revenue;
+
+CREATE TABLE product_revenue (
+product_name VARCHAR(255),
+year INTEGER,
+revenue DECIMAL(10, 2)
+);
+INSERT INTO product_revenue (product_name, year, revenue) VALUES
+('Product A', 2022, 10000.00),
+('Product A', 2023, 9500.00),
+('Product B', 2022, 15000.00),
+('Product B', 2023, 14500.00),
+('Product C', 2022, 8000.00),
+('Product C', 2023, 8500.00),
+('Product D', 2022, 12000.00),
+('Product D', 2023, 12500.00),
+('Product E', 2022, 20000.00),
+('Product E', 2023, 19000.00),
+('Product F', 2022, 7000.00),
+('Product F', 2023, 7200.00),
+('Product G', 2022, 18000.00),
+('Product G', 2023, 17000.00),
+('Product H', 2022, 3000.00),
+('Product H', 2023, 3200.00),
+('Product I', 2022, 9000.00),
+('Product I', 2023, 9200.00),
+('Product J', 2022, 6000.00),
+('Product J', 2023, 5900.00);
+
+-- Using self join
+SELECT
+	pr_2023.product_name,
+	pr_2022.revenue AS revenue_2022,
+	pr_2023.revenue AS revenue_2023,
+	(pr_2022.revenue - pr_2023.revenue) AS revenue_decreased,
+	ROUND((pr_2022.revenue - pr_2023.revenue) / pr_2022.revenue * 100, 2) AS decreased_ratio
+FROM
+	product_revenue pr_2022
+JOIN
+	product_revenue pr_2023
+	ON
+	pr_2022.product_name = pr_2023.product_name
+AND 
+	pr_2022.year = 2022
+AND 
+	pr_2023.year = 2023
+WHERE
+	pr_2023.revenue < pr_2022.revenue
+ORDER BY
+	revenue_decreased DESC
+LIMIT 5;
+
+-- Using conditional aggregation
+WITH revenue_cte AS (
+    SELECT
+        product_name,
+        MAX(CASE WHEN year = 2022 THEN revenue END) AS revenue_2022,
+        MAX(CASE WHEN year = 2023 THEN revenue END) AS revenue_2023
+    FROM product_revenue
+    GROUP BY product_name
+)
+SELECT
+    product_name,
+    revenue_2022,
+    revenue_2023,
+    revenue_2022 - revenue_2023 AS revenue_decreased,
+    ROUND(
+        (revenue_2022 - revenue_2023) * 100.0 / revenue_2022,
+        2
+    ) AS decreased_ratio
+FROM revenue_cte
+WHERE revenue_2023 < revenue_2022
+ORDER BY revenue_decreased DESC
+LIMIT 5;
+
+-- Using windows function
+WITH revenue_cte AS
+(
+    SELECT
+        product_name,
+        year,
+        revenue,
+
+        LAG(revenue) OVER(
+            PARTITION BY product_name
+            ORDER BY year
+        ) AS previous_year_revenue
+
+    FROM product_revenue
+)
+
+SELECT
+    product_name,
+    previous_year_revenue AS revenue_2022,
+    revenue AS revenue_2023,
+
+    previous_year_revenue - revenue AS revenue_decreased,
+
+    ROUND(
+        (previous_year_revenue - revenue)
+        *100.0/previous_year_revenue,
+        2
+    ) AS decreased_ratio
+
+FROM revenue_cte
+WHERE
+    year = 2023
+    AND revenue < previous_year_revenue
+ORDER BY revenue_decreased DESC
+LIMIT 5;
+
+
+-- =====================================================
+-- Write a query that calculates the total viewership for laptops and mobile devices, where mobile is defined as the sum of tablet and phone viewership. Output the total viewership for laptops as laptop_views and the total viewership for mobile devices as mobile_views.
+-- =====================================================
+DROP TABLE IF EXISTS viewership;
+
+CREATE TABLE viewership (
+device_type VARCHAR(255),
+viewership_count INTEGER
+);
+
+INSERT INTO viewership (device_type, viewership_count) VALUES
+('laptop', 5000),
+('tablet', 3000),
+('phone', 7000),
+('laptop', 6000),
+('tablet', 4000),
+('phone', 8000),
+('laptop', 5500),
+('tablet', 3500),
+('phone', 7500);
+
+
+SELECT
+	SUM(CASE WHEN device_type = 'laptop' THEN viewership_count ELSE 0 END) AS laptop_views,
+	SUM(CASE WHEN device_type IN ('tablet', 'phone') THEN viewership_count ELSE 0 END) AS mobile_views
+FROM
+	viewership;
