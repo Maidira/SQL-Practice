@@ -3225,3 +3225,275 @@ SELECT
 	SUM(CASE WHEN device_type IN ('tablet', 'phone') THEN viewership_count ELSE 0 END) AS mobile_views
 FROM
 	viewership;
+
+
+-- =====================================================
+--  Find Duplicate Customers but Keep the Latest Active.
+-- =====================================================
+DROP TABLE IF EXISTS customers;
+
+CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(50),
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    city VARCHAR(30),
+    status VARCHAR(20),
+    updated_at DATETIME
+);
+INSERT INTO customers VALUES
+(101,'John','john@gmail.com','9876543210','Delhi','Active','2024-01-10 10:15:00'),
+(102,'John','john@gmail.com','9876543210','Delhi','Inactive','2024-03-18 11:20:00'),
+(103,'John','john@gmail.com','9876543210','Mumbai','Active','2024-05-25 09:00:00'),
+(104,'Mary','mary@gmail.com','9999999991','Pune','Active','2024-02-14 14:00:00'),
+(105,'Mary','mary@gmail.com','9999999991','Pune','Active','2024-06-12 08:45:00'),
+(106,'David','david@gmail.com','9999999992','Bangalore','Inactive','2024-01-01 09:00:00'),
+(107,'David','david@gmail.com','9999999992','Bangalore','Active','2024-02-11 10:30:00'),
+(108,'Sarah','sarah@gmail.com','9999999993','Chennai','Active','2024-04-21 12:00:00'),
+(109,'Mike','mike@gmail.com','9999999994','Hyderabad','Active','2024-05-10 11:15:00'),
+(110,'Mike','mike@gmail.com','9999999994','Hyderabad','Active','2024-07-01 16:20:00'),
+(111,'Emma','emma@gmail.com','9999999995','Delhi','Inactive','2024-06-08 10:00:00'),
+(112,'Emma','emma@gmail.com','9999999995','Delhi','Inactive','2024-07-09 10:30:00');
+
+
+with cte AS(
+	SELECT 
+		customer_id,
+        customer_name,
+        email,
+        city,
+        status,
+        updated_at,
+        DENSE_RANK() OVER(PARTITION BY email ORDER BY updated_at DESC) AS rnk
+	FROM
+		customers
+)
+SELECT
+	customer_id,
+        customer_name,
+        email,
+        city,
+        status,
+        updated_at
+FROM
+	cte
+WHERE
+	rnk = 1;
+
+
+-- =====================================================
+--  Top 3 Salaries Per Department (Including Ties).
+-- =====================================================
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY,
+    employee_name VARCHAR(50),
+    department VARCHAR(30),
+    salary INT
+);
+INSERT INTO employees VALUES
+(101,'John','IT',120000),
+(102,'David','IT',115000),
+(103,'Alex','IT',115000),
+(104,'Chris','IT',100000),
+(105,'Mary','HR',90000),
+(106,'Emma','HR',85000),
+(107,'Sophia','HR',85000),
+(108,'James','HR',75000),
+(109,'Robert','Finance',150000),
+(110,'Linda','Finance',140000),
+(111,'Kevin','Finance',130000),
+(112,'Lisa','Finance',130000),
+(113,'Michael','Finance',110000);
+
+
+with cte AS(
+	SELECT
+		employee_id,
+        employee_name,
+        department,
+        salary,
+        DENSE_RANK() OVER(PARTITION BY department ORDER BY salary DESC) as rnk
+	FROM
+		employees
+)
+SELECT
+	*
+FROM
+	cte
+WHERE
+	rnk <=3;
+        
+
+-- =====================================================
+--  Find Customers Who Logged In for 7 Consecutive Days.
+-- =====================================================
+DROP TABLE IF EXISTS user_logins;
+
+CREATE TABLE user_logins (
+    login_id INT PRIMARY KEY,
+    user_id INT,
+    login_date DATE
+);
+INSERT INTO user_logins VALUES
+(1,101,'2024-06-01'),
+(2,101,'2024-06-02'),
+(3,101,'2024-06-03'),
+(4,101,'2024-06-04'),
+(5,101,'2024-06-05'),
+(6,101,'2024-06-06'),
+(7,101,'2024-06-07'),
+(8,102,'2024-06-01'),
+(9,102,'2024-06-02'),
+(10,102,'2024-06-04'),
+(11,102,'2024-06-05'),
+(12,102,'2024-06-06'),
+(13,103,'2024-06-10'),
+(14,103,'2024-06-11'),
+(15,103,'2024-06-12'),
+(16,103,'2024-06-13'),
+(17,103,'2024-06-14'),
+(18,103,'2024-06-15'),
+(19,103,'2024-06-16'),
+(20,104,'2024-06-01'),
+(21,104,'2024-06-03'),
+(22,104,'2024-06-04'),
+(23,104,'2024-06-07');
+
+-- First appraoch
+with cte AS(
+	SELECT
+		login_id,
+        user_id,
+        login_date,
+        DATE_SUB(
+			login_date,
+            INTERVAL ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY login_date) DAY
+        ) AS grp
+	FROM
+		user_logins
+)
+SELECT
+    user_id
+FROM cte
+GROUP BY
+    user_id,
+    grp
+HAVING COUNT(*)>=7;
+
+
+-- Second appraoch
+WITH cte AS
+(
+    SELECT
+        user_id,
+        login_date,
+        ROW_NUMBER() OVER(
+            PARTITION BY user_id
+            ORDER BY login_date
+        ) AS rn
+    FROM user_logins
+),
+login_groups AS
+(
+    SELECT
+        user_id,
+        login_date,
+        DATE_SUB(login_date, INTERVAL rn DAY) AS grp
+    FROM cte
+)
+SELECT
+    user_id
+FROM login_groups
+GROUP BY
+    user_id,
+    grp
+HAVING COUNT(*) >= 7;
+	
+
+-- Third appraoch
+WITH cte1 AS
+(
+SELECT
+    user_id,
+    login_date,
+    CASE
+        WHEN DATEDIFF(
+            login_date,
+            LAG(login_date) OVER(
+                PARTITION BY user_id
+                ORDER BY login_date
+            )
+        ) = 1
+        THEN 0
+        ELSE 1
+    END AS new_grp
+FROM user_logins
+),
+cte2 AS
+(
+SELECT
+    *,
+    SUM(new_grp) OVER(
+        PARTITION BY user_id
+        ORDER BY login_date
+    ) AS grp
+FROM cte1
+)
+
+SELECT
+    user_id
+FROM cte2
+GROUP BY
+    user_id,
+    grp
+HAVING COUNT(*) >= 7;
+
+
+-- =====================================================
+--  Find Missing Dates.
+-- =====================================================
+DROP TABLE IF EXISTS sales;
+
+CREATE TABLE sales
+(
+    sale_id INT PRIMARY KEY,
+    sale_date DATE,
+    amount DECIMAL(10,2)
+);
+INSERT INTO sales VALUES
+(1,'2024-06-01',1500),
+(2,'2024-06-02',2100),
+(3,'2024-06-04',1800),
+(4,'2024-06-06',2500),
+(5,'2024-06-07',2200),
+(6,'2024-06-10',1700);
+
+
+WITH RECURSIVE calendar AS(
+	SELECT 
+		MIN(sale_date) dt
+	FROM 
+		sales
+	UNION ALL
+	SELECT 
+		DATE_ADD(dt,INTERVAL 1 DAY)
+	FROM 
+		calendar
+	WHERE dt<
+		(
+		SELECT MAX(sale_date)
+		FROM sales
+		)
+)
+SELECT
+	dt AS missing_date
+FROM 
+	calendar c
+LEFT JOIN 
+	sales s
+ON 
+	c.dt=s.sale_date
+WHERE 
+	s.sale_date IS NULL;
