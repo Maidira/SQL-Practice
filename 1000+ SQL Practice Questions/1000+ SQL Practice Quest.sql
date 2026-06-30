@@ -3497,3 +3497,354 @@ ON
 	c.dt=s.sale_date
 WHERE 
 	s.sale_date IS NULL;
+
+
+-- =====================================================
+--  Running Total (Cumulative Sum).
+-- =====================================================
+DROP TABLE IF EXISTS daily_sales;
+
+CREATE TABLE daily_sales
+(
+    sale_id INT PRIMARY KEY,
+    sale_date DATE,
+    amount INT
+);
+INSERT INTO daily_sales VALUES
+(1,'2024-06-01',1000),
+(2,'2024-06-02',1500),
+(3,'2024-06-03',800),
+(4,'2024-06-04',2200),
+(5,'2024-06-05',1200),
+(6,'2024-06-06',1800),
+(7,'2024-06-07',900);
+
+-- Using Windows function
+SELECT
+	sale_date,
+    amount,
+    SUM(amount) OVER(ORDER BY sale_date) AS running_total
+FROM
+	daily_sales;
+
+-- Using Self join
+SELECT
+    d1.sale_date,
+    d1.amount,
+    SUM(d2.amount) AS running_total
+FROM daily_sales d1
+JOIN daily_sales d2
+ON d2.sale_date<=d1.sale_date
+GROUP BY
+d1.sale_date,
+d1.amount
+ORDER BY d1.sale_date;
+
+
+-- =====================================================
+--  Running Total (Cumulative Sum).
+-- =====================================================
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS orders;
+
+CREATE TABLE customers
+(
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(50),
+    city VARCHAR(30)
+);
+CREATE TABLE orders
+(
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    amount DECIMAL(10,2)
+);
+INSERT INTO customers VALUES
+(101,'John','Delhi'),
+(102,'Mary','Mumbai'),
+(103,'David','Pune'),
+(104,'Emma','Hyderabad'),
+(105,'Chris','Chennai'),
+(106,'Sophia','Delhi'),
+(107,'Robert','Pune'),
+(108,'Lisa','Bangalore');
+INSERT INTO orders VALUES
+(1001,101,'2024-06-01',1200),
+(1002,101,'2024-06-05',800),
+(1003,102,'2024-06-03',2500),
+(1004,104,'2024-06-10',1500),
+(1005,106,'2024-06-08',2000);
+
+-- Using Join
+SELECT
+    c.customer_id,
+    c.customer_name
+FROM 
+	customers c
+LEFT JOIN 
+	orders o
+ON 
+	c.customer_id = o.customer_id
+WHERE 
+	o.order_id IS NULL;
+
+-- Using NOT EXISTS
+SELECT
+    customer_id,
+    customer_name
+FROM customers c
+WHERE NOT EXISTS
+(
+    SELECT 1
+    FROM orders o
+    WHERE o.customer_id = c.customer_id
+);
+
+
+-- =====================================================
+--  Find Products Whose Sales Are Above Their Category Average.
+-- =====================================================
+DROP TABLE IF EXISTS product_sales;
+
+CREATE TABLE product_sales
+(
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(50),
+    category VARCHAR(30),
+    sales INT
+);
+INSERT INTO product_sales VALUES
+(101,'Laptop','Electronics',1200),
+(102,'Mouse','Electronics',400),
+(103,'Keyboard','Electronics',500),
+(104,'Phone','Electronics',900),
+(105,'Chair','Furniture',700),
+(106,'Table','Furniture',1000),
+(107,'Sofa','Furniture',1500),
+(108,'Cupboard','Furniture',800),
+(109,'Shampoo','Grocery',200),
+(110,'Soap','Grocery',150),
+(111,'Oil','Grocery',300),
+(112,'Rice','Grocery',600);
+
+
+WITH CTE as(
+	SELECT
+        category,
+        sales,
+        AVG(sales) OVER(PARTITION BY category) AS avg_sales
+	FROM
+		product_sales
+)
+SELECT
+	*
+FROM
+	cte
+WHERE
+	sales > avg_sales;
+
+
+-- =====================================================
+--  Monthly Revenue Running Total.
+-- =====================================================
+DROP TABLE IF EXISTS monthly_sales;
+
+CREATE TABLE monthly_sales
+(
+    sale_id INT PRIMARY KEY,
+    sale_date DATE,
+    revenue INT
+);
+INSERT INTO monthly_sales VALUES
+(1,'2024-01-05',5000),
+(2,'2024-01-20',4000),
+(3,'2024-02-10',6000),
+(4,'2024-02-22',3000),
+(5,'2024-03-08',7000),
+(6,'2024-03-28',2000),
+(7,'2024-04-12',4500),
+(8,'2024-04-25',5500),
+(9,'2024-05-10',6500),
+(10,'2024-05-30',3500);
+
+
+WITH monthly_revenue AS
+(
+SELECT
+    YEAR(sale_date) AS yr,
+    MONTH(sale_date) AS mon,
+    SUM(revenue) AS monthly_revenue
+FROM 
+	monthly_sales
+GROUP BY
+	YEAR(sale_date),
+	MONTH(sale_date)
+)
+SELECT
+	*,
+	SUM(monthly_revenue)
+	OVER(ORDER BY yr,mon) AS running_revenue
+FROM monthly_revenue;
+
+
+-- =====================================================
+--  Top 3 Customers by Total Spending in Each City.
+-- =====================================================
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS orders;
+
+CREATE TABLE customers
+(
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(50),
+    city VARCHAR(30)
+);
+
+CREATE TABLE orders
+(
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    amount DECIMAL(10,2)
+);
+
+INSERT INTO customers VALUES
+(101,'John','Delhi'),
+(102,'Mary','Delhi'),
+(103,'David','Delhi'),
+(104,'Emma','Delhi'),
+(105,'Chris','Mumbai'),
+(106,'Sophia','Mumbai'),
+(107,'Robert','Mumbai'),
+(108,'Lisa','Mumbai');
+
+INSERT INTO orders VALUES
+(1,101,'2024-01-01',500),
+(2,101,'2024-01-05',800),
+(3,102,'2024-01-03',1200),
+(4,103,'2024-01-04',300),
+(5,103,'2024-01-10',700),
+(6,104,'2024-01-07',600),
+(7,105,'2024-01-01',900),
+(8,105,'2024-01-08',600),
+(9,106,'2024-01-04',700),
+(10,107,'2024-01-05',1200),
+(11,108,'2024-01-06',400),
+(12,108,'2024-01-12',300);
+
+
+WITH customer_sales AS (
+	SELECT
+		c.customer_id,
+        c.customer_name,
+        c.city,
+        SUM(o.amount) AS total_amount
+	FROM
+		customers c
+	JOIN
+		orders o
+		ON c.customer_id = o.customer_id
+	GROUP BY
+		c.customer_id,
+        c.customer_name,
+        c.city
+),
+sales_rank AS (
+	SELECT
+		*,
+        DENSE_RANK() OVER(PARTITION BY city ORDER BY total_amount DESC) AS rnk
+	FROM
+		customer_sales
+)
+SELECT
+	*
+FROM
+	sales_rank
+WHERE
+	rnk <= 3;
+
+
+-- =====================================================
+--  Compare Current Row with Previous Row.
+-- =====================================================
+DROP TABLE IF EXISTS daily_sales;
+
+CREATE TABLE daily_sales
+(
+    sale_date DATE,
+    sales INT
+);
+
+INSERT INTO daily_sales VALUES
+('2024-06-01',1000),
+('2024-06-02',1200),
+('2024-06-03',900),
+('2024-06-04',1500),
+('2024-06-05',1700),
+('2024-06-06',1600),
+('2024-06-07',2000);
+
+-- Show today's sales and yesterday's sales.
+SELECT
+	sale_date,
+    sales,
+    LAG(sales) OVER(ORDER BY sale_date DESC) AS prev_sales
+FROM
+	daily_sales;
+
+-- Find daily increase.
+SELECT
+    sale_date,
+    sales,
+    LAG(sales)
+    OVER(
+        ORDER BY sale_date
+    ) previous_sales,
+    sales -
+    LAG(sales)
+    OVER(
+        ORDER BY sale_date
+    ) increase
+FROM daily_sales;
+
+-- Show Increase / Decrease
+SELECT
+    sale_date,
+    sales,
+    CASE
+        WHEN sales >
+             LAG(sales)
+             OVER(
+                ORDER BY sale_date
+             ) THEN 'Increase'
+        WHEN sales <
+             LAG(sales)
+             OVER(
+                ORDER BY sale_date
+             ) THEN 'Decrease'
+        ELSE 'Same'
+    END trend
+FROM daily_sales;
+
+-- Percentage Growth
+SELECT
+    sale_date,
+    sales,
+    LAG(sales) OVER( ORDER BY sale_date) AS previous_sales,
+    ROUND(
+        (sales -
+        LAG(sales) OVER(ORDER BY sale_date))
+        *100
+        /
+        LAG(sales) OVER(ORDER BY sale_date)
+    ,2)
+    growth_percentage
+FROM daily_sales;
+
+-- Compare with 2 Days Ago
+SELECT
+    sale_date,
+    sales,
+    LAG(sales,2) OVER(ORDER BY sale_date ) AS previous_2_day
+FROM daily_sales;
