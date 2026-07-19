@@ -3848,3 +3848,382 @@ SELECT
     sales,
     LAG(sales,2) OVER(ORDER BY sale_date ) AS previous_2_day
 FROM daily_sales;
+
+
+-- =====================================================
+--  LEAD() (Compare with Next Row).
+-- =====================================================
+DROP TABLE IF EXISTS daily_sales;
+
+CREATE TABLE daily_sales
+(
+    sale_date DATE,
+    sales INT
+);
+INSERT INTO daily_sales VALUES
+('2024-06-01',1000),
+('2024-06-02',1200),
+('2024-06-03',900),
+('2024-06-04',1500),
+('2024-06-05',1700),
+('2024-06-06',1600),
+('2024-06-07',2000);
+
+-- Show today's sales and tomorrow's sales.
+SELECT
+	sale_date,
+    sales,
+    LEAD(sales) OVER(ORDER BY sale_date DESC) AS tomm_sales
+FROM
+	daily_sales;
+	
+-- Find Tomorrow's Change
+SELECT
+	sale_date,
+    sales,
+    LEAD(sales) OVER(ORDER BY sale_date DESC) AS tomm_sales,
+    (LEAD(sales) OVER(ORDER BY sale_date DESC) - sales) AS day_change
+FROM
+	daily_sales;
+
+-- Will Tomorrow Increase?
+WITH cte AS(
+SELECT
+	sale_date,
+    sales,
+    LEAD(sales) OVER(ORDER BY sale_date DESC) AS tomm_sales
+FROM
+	daily_sales
+)
+SELECT
+	*,
+    CASE
+		WHEN tomm_sales > sales THEN 'increase'
+        WHEN tomm_sales < sales THEN 'decrease'
+		ELSE 'same'
+	END AS trend
+FROM
+	cte;
+
+-- Compare With Two Rows Ahead
+SELECT
+    sale_date,
+    sales,
+    LEAD(sales,2)OVER(ORDER BY sale_date) AS future_sales
+FROM daily_sales;
+
+
+-- =====================================================
+--  Difference between days until next purchase.
+-- =====================================================
+DROP TABLE IF EXISTS customer_orders;
+
+CREATE TABLE customer_orders
+(
+customer_id INT,
+order_date DATE
+);
+INSERT INTO customer_orders VALUES
+(101,'2024-06-01'),
+(101,'2024-06-08'),
+(101,'2024-06-20'),
+(102,'2024-06-03'),
+(102,'2024-06-10'),
+(102,'2024-06-25');
+
+SELECT
+    customer_id,
+    order_date,
+    LEAD(order_date) OVER(PARTITION BY customer_id ORDER BY order_date) AS next_order,
+    DATEDIFF(LEAD(order_date) OVER(PARTITION BY customer_id ORDER BY order_date ), order_date ) AS days_to_next_order
+FROM customer_orders;
+
+
+-- =====================================================
+--  Write a query to identify the top two highest-grossing products within each category in the year 2022. The output should include the category, product, and total spend. 
+-- =====================================================
+DROP TABLE IF EXISTS product_spend;
+
+CREATE TABLE product_spend (
+category VARCHAR(255),
+product VARCHAR(255),
+user_id INTEGER,
+spend DECIMAL(10, 2),
+transaction_date TIMESTAMP
+);
+
+INSERT INTO product_spend (category, product, user_id, spend, transaction_date) VALUES
+('appliance', 'refrigerator', 165, 246.00, '2021-12-26 12:00:00'),
+('appliance', 'refrigerator', 123, 299.99, '2022-03-02 12:00:00'),
+('appliance', 'washing machine', 123, 219.80, '2022-03-02 12:00:00'),
+('electronics', 'vacuum', 178, 152.00, '2022-04-05 12:00:00'),
+('electronics', 'wireless headset', 156, 249.90, '2022-07-08 12:00:00'),
+('electronics', 'vacuum', 145, 189.00, '2022-07-15 12:00:00');
+
+
+WITH ranked_products AS(
+    SELECT
+        category,
+        product,
+        SUM(spend) AS total_spend,
+        RANK() OVER(PARTITION BY category ORDER BY SUM(spend) DESC) AS rnk
+    FROM product_spend
+    WHERE EXTRACT(YEAR FROM transaction_date) = 2022
+    GROUP BY category, product
+)
+SELECT
+    category,
+    product,
+    total_spend
+FROM ranked_products
+WHERE rnk <= 2
+ORDER BY category, rnk;
+
+
+-- =====================================================
+--  Write a query to obtain a histogram of tweets posted per user in 2022. The output should include the tweet count per user as the bucket and the number of Twitter users who fall into that bucket.
+-- =====================================================
+DROP TABLE IF EXISTS tweets;
+
+CREATE TABLE tweets (
+tweet_id INTEGER,
+user_id INTEGER,
+msg VARCHAR(255),
+tweet_date TIMESTAMP
+);
+INSERT INTO tweets (tweet_id, user_id, msg, tweet_date) VALUES
+(214252, 111, 'Am considering taking Tesla private at $420. Funding secured.', '2021-12-30 00:00:00'),
+(739252, 111, 'Despite the constant negative press covfefe', '2022-01-01 00:00:00'),
+(846402, 111, 'Following @NickSinghTech on Twitter changed my life!', '2022-02-14 00:00:00'),
+(241425, 254, 'If the salary is so competitive why won’t you tell me whatit is?', '2022-03-01 00:00:00'),
+(231574, 148, 'I no longer have a manager. I can\'t be managed', '2022-03-23 00:00:00');
+
+WITH tweets_counts AS(
+SELECT
+	user_id,
+    COUNT(tweet_id) AS total_tweets
+FROM
+	tweets
+WHERE
+	EXTRACT(YEAR FROM tweet_date) = 2022
+GROUP BY
+	user_id
+)
+SELECT
+	total_tweets AS tweets_bucket,
+    COUNT(*) AS total_user
+FROM
+	tweets_counts
+GROUP BY
+	total_tweets
+ORDER BY
+	total_tweets;
+
+
+-- =====================================================
+--  Write a query to find the employees who are high earners in each of the company's departments. A high earner in a department is an employee who has a salary in the top three unique salaries for that department.
+-- =====================================================
+DROP TABLE IF EXISTS Department;
+DROP TABLE IF EXISTS Employee;
+
+CREATE TABLE Department (
+id INT PRIMARY KEY,
+name VARCHAR(50)
+);
+-- Insert values into Department table
+INSERT INTO Department (id, name) VALUES
+(1, 'IT'),
+(2, 'Sales');
+
+CREATE TABLE Employee (
+id INT PRIMARY KEY,
+name VARCHAR(50),
+salary INT,
+departmentId INT,
+FOREIGN KEY (departmentId) REFERENCES Department(id)
+);
+-- Insert additional records into Employee table
+INSERT INTO Employee (id, name, salary, departmentId) VALUES
+(8, 'Alice', 75000, 2),
+(9, 'Bob', 82000, 2),
+(10, 'Carol', 78000, 1),
+(11, 'David', 70000, 1),
+(12, 'Eva', 85000, 2),
+(13, 'Frank', 72000, 1),
+(14, 'Gina', 83000, 1),
+(15, 'Hank', 68000, 1),
+(16, 'Irene', 76000, 2),
+(17, 'Jack', 74000, 2),
+(18, 'Kelly', 79000, 1),
+(19, 'Liam', 71000, 1),
+(20, 'Molly', 77000, 2),
+(21, 'Nathan', 81000, 1),
+(22, 'Olivia', 73000, 2),
+(23, 'Peter', 78000, 1),
+(24, 'Quinn', 72000, 1),
+(25, 'Rachel', 80000, 2),
+(26, 'Steve', 75000, 2),
+(27, 'Tina', 79000, 1);
+
+
+WITH rnked_emp AS(
+	SELECT
+		id,
+		name,
+        salary,
+        departmentId,
+        DENSE_RANK() OVER(PARTITION BY departmentId ORDER BY salary DESC) AS rnk
+	FROM
+		Employee
+)
+SELECT
+	r.name,
+	r.salary,
+    d.name
+FROM
+	rnked_emp r
+JOIN
+	Department d
+	ON r.departmentId = d.id
+WHERE
+	rnk <=3;
+
+
+-- =====================================================
+--  Write an SQL query to find, for each month and country, the number of transactions and their total amount, as well as the number of approved transactions and their total amount.
+-- The result should be ordered by country and month.
+-- =====================================================
+DROP TABLE IF EXISTS Transactions;
+
+
+CREATE TABLE Transactions (
+id INT PRIMARY KEY,
+country VARCHAR(255),
+state VARCHAR(255),
+amount INT,
+trans_date DATE
+);
+
+INSERT INTO Transactions (id, country, state, amount, trans_date) VALUES
+(121, 'US', 'approved', 1000, '2018-12-18'),
+(122, 'US', 'declined', 2000, '2018-12-19'),
+(123, 'US', 'approved', 2000, '2019-01-01'),
+(124, 'DE', 'approved', 2000, '2019-01-07');
+
+
+SELECT
+	country,
+    EXTRACT(MONTH FROM trans_date) AS month,
+    COUNT(*) AS total_transactions,
+    SUM(amount) AS total_amount,
+    COUNT(CASE WHEN state="approved" THEN amount END) AS approved_amount
+FROM
+	Transactions
+GROUP BY
+	country,
+    EXTRACT(MONTH FROM trans_date)
+ORDER BY
+	country,
+    EXTRACT(MONTH FROM trans_date);
+    
+    
+    -- =====================================================
+-- Given the reviews table, write a query to retrieve the average star rating for each product, grouped by month. The output should display:
+-- The month as a numerical value (1-12),
+-- The product ID,
+-- The average star rating rounded to two decimal places.
+-- The result should be sorted first by month and then by product ID.
+    -- =====================================================
+    DROP TABLE IF EXISTS reviews;
+    
+CREATE TABLE reviews (
+review_id INTEGER,
+user_id INTEGER,
+submit_date TIMESTAMP,
+product_id INTEGER,
+stars INTEGER
+);
+
+INSERT INTO reviews (review_id, user_id, submit_date, product_id, stars) VALUES
+(6171, 123, '2022-06-08 00:00:00', 50001, 4),
+(7802, 265, '2022-06-10 00:00:00', 69852, 4),
+(5293, 362, '2022-06-18 00:00:00', 50001, 3),
+(6352, 192, '2022-07-26 00:00:00', 69852, 3),
+(4517, 981, '2022-07-05 00:00:00', 69852, 2),
+(8654, 753, '2022-08-15 00:00:00', 50001, 5),
+(9743, 642, '2022-08-22 00:00:00', 69852, 3),
+(1025, 874, '2022-08-05 00:00:00', 50001, 4),
+(2089, 512, '2022-09-10 00:00:00', 69852, 2),
+(3078, 369, '2022-09-18 00:00:00', 50001, 5),
+(4056, 785, '2022-09-25 00:00:00', 69852, 4),
+(5034, 641, '2022-10-12 00:00:00', 50001, 3),
+(6023, 829, '2022-10-18 00:00:00', 69852, 5),
+(7012, 957, '2022-10-25 00:00:00', 50001, 2),
+(8001, 413, '2022-11-05 00:00:00', 69852, 4),
+(8990, 268, '2022-11-15 00:00:00', 50001, 3),
+(9967, 518, '2022-11-22 00:00:00', 69852, 3),
+(1086, 753, '2022-12-10 00:00:00', 50001, 5),
+(1175, 642, '2022-12-18 00:00:00', 69852, 4),
+(1264, 874, '2022-12-25 00:00:00', 50001, 3),
+(1353, 512, '2022-12-31 00:00:00', 69852, 2),
+(1442, 369, '2023-01-05 00:00:00', 50001, 4),
+(1531, 785, '2023-01-15 00:00:00', 69852, 5),
+(1620, 641, '2023-01-22 00:00:00', 50001, 3),
+(1709, 829, '2023-01-30 00:00:00', 69852, 4);
+
+
+SELECT
+	product_id,
+    EXTRACT(MONTH FROM submit_date) AS month,
+    ROUND(AVG(stars), 2) AS avg_rating
+FROM 
+	reviews
+GROUP BY
+	product_id,
+    EXTRACT(MONTH FROM submit_date)
+ORDER BY
+	month,
+    product_id;
+
+
+-- =====================================================
+-- Identify users who have made purchases totaling more than $10,000 in the last month from the purchases table. The table contains information abou purchases, including the user ID, date of purchase, product ID, and the amount spent.
+-- =====================================================
+DROP TABLE IF EXISTS purchases;
+
+CREATE TABLE purchases (
+purchase_id INT PRIMARY KEY,
+user_id INT,
+date_of_purchase TIMESTAMP,
+product_id INT,
+amount_spent DECIMAL(10, 2)
+);
+
+INSERT INTO purchases (purchase_id, user_id, date_of_purchase, product_id, amount_spent) VALUES
+(2171, 145, '2024-02-22 00:00:00', 43001, 1000),
+(3022, 578, '2024-02-24 00:00:00', 25852, 4000),
+(4933, 145, '2024-02-28 00:00:00', 43001, 7000),
+(6322, 248, '2024-02-19 00:00:00', 25852, 2000),
+(4717, 578, '2024-02-12 00:00:00', 25852, 7000),
+(2172, 145, '2024-01-15 00:00:00', 43001, 8000),
+(3023, 578, '2024-01-18 00:00:00', 25852, 3000),
+(4934, 145, '2024-01-28 00:00:00', 43001, 9000),
+(6323, 248, '2024-02-20 00:00:00', 25852, 1500),
+(4718, 578, '2024-02-25 00:00:00', 25852, 6000);
+
+
+SELECT
+	user_id,
+    SUM(amount_spent) AS total_spent
+FROM
+	purchases
+WHERE
+	date_of_purchase >= CURDATE() - INTERVAL 1 MONTH
+    AND
+    date_of_purchase < CURDATE()
+GROUP BY
+	user_id
+HAVING
+	SUM(amount_spent) > 10000 
+ORDER BY
+	user_id;  
