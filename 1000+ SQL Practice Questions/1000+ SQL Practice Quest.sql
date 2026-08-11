@@ -4227,3 +4227,207 @@ HAVING
 	SUM(amount_spent) > 10000 
 ORDER BY
 	user_id;  
+
+
+-- =====================================================
+-- Given the data on IBM employees, write a query to find the average duration of service for employees across different departments. The duration of service is calculated as end_date - start_date. If end_date is NULL, consider it as the current date.
+-- =====================================================  
+DROP TABLE IF EXISTS employee_service;
+
+CREATE TABLE employee_service (
+employee_id INT PRIMARY KEY,
+name VARCHAR(50),
+start_date DATE,
+end_date DATE,
+department VARCHAR(50)
+);
+-- Insert sample records
+INSERT INTO employee_service (employee_id, name, start_date, end_date, department) VALUES
+(101, 'John', '2015-01-15', '2020-06-30', 'Technology'),
+(102, 'Emma', '2016-08-01', NULL, 'Management'),
+(103, 'Ava', '2017-05-30', '2019-08-01', 'Strategy'),
+(104, 'Oliver', '2018-11-11', NULL, 'Technology'),
+(105, 'Sophia', '2020-01-17', NULL, 'Management'),
+(106, 'William', '2019-03-20', NULL, 'Strategy'),
+(107, 'James', '2018-09-10', NULL, 'Technology'),
+(108, 'Charlotte', '2017-12-05', NULL, 'Management'),
+(109, 'Michael', '2016-06-15', '2021-02-28', 'Technology'),
+(110, 'Amelia', '2019-11-25', NULL, 'Strategy'),
+(111, 'Ethan', '2018-04-08', '2022-01-10', 'Management'),
+(112, 'Mia', '2020-07-15', NULL, 'Technology'),
+(113, 'Alexander', '2017-10-30', '2020-09-15', 'Strategy'),
+(114, 'Isabella', '2016-05-22', '2021-08-20', 'Management'),
+(115, 'Liam', '2019-02-12', '2023-04-05', 'Technology'),
+(116, 'Ella', '2018-08-05', '2022-11-28', 'Strategy'),
+(117, 'Noah', '2020-09-18', NULL, 'Management'),
+(118, 'Avery', '2017-11-10', NULL, 'Technology'),
+(119, 'Benjamin', '2016-04-04', NULL, 'Strategy'),
+(120, 'Abigail', '2019-08-30', NULL, 'Management');
+
+ 
+SELECT
+	department,
+    AVG(
+		CASE WHEN end_date IS NULL THEN DATEDIFF(CURDATE() , start_date)
+        ELSE DATEDIFF(end_date , start_date)
+        END
+    ) AS avg_service_duration
+FROM
+	employee_service
+GROUP BY
+	department
+ORDER BY
+	department;
+ 
+ 
+-- =====================================================
+-- Write a query to identify the top 3 posts with the highest engagement (likes + comments) for each user on a Facebook page. Display the user ID, post ID, engagement count, and rank for each post.
+-- =====================================================  
+ DROP TABLE IF EXISTS fb_posts;
+ 
+ CREATE TABLE fb_posts (
+post_id INT PRIMARY KEY,
+user_id INT,
+likes INT,
+comments INT,
+post_date DATE
+);
+-- Insert sample records
+INSERT INTO fb_posts (post_id, user_id, likes, comments, post_date) VALUES
+(1, 101, 50, 20, '2024-02-27'),
+(2, 102, 30, 15, '2024-02-28'),
+(3, 103, 70, 25, '2024-02-29'),
+(4, 101, 80, 30, '2024-03-01'),
+(5, 102, 40, 10, '2024-03-02'),
+(6, 103, 60, 20, '2024-03-03'),
+(7, 101, 90, 35, '2024-03-04'),
+(8, 101, 90, 35, '2024-03-05'),
+(9, 102, 50, 15, '2024-03-06'),
+(10, 103, 30, 10, '2024-03-07'),
+(11, 101, 60, 25, '2024-03-08'),
+(12, 102, 70, 30, '2024-03-09'),
+(13, 103, 80, 35, '2024-03-10'),
+(14, 101, 40, 20, '2024-03-11'),
+(15, 102, 90, 40, '2024-03-12'),
+(16, 103, 20, 5, '2024-03-13'),
+(17, 101, 70, 25, '2024-03-14'),
+(18, 102, 50, 15, '2024-03-15'),
+(19, 103, 30, 10, '2024-03-16'),
+(20, 101, 60, 20, '2024-03-17');
+ 
+ 
+ WITH cte AS(
+	SELECT
+		user_id,
+        post_id,
+        (likes + comments) AS engagement,
+        ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY (likes + comments) DESC ) AS rnk
+	FROM
+		fb_posts
+ )
+ SELECT
+	user_id,
+	post_id,
+    engagement,
+    rnk
+FROM
+	cte
+WHERE 
+	rnk <= 3
+ORDER BY
+	user_id,
+    rnk;
+ 
+ 
+-- =====================================================
+-- Write a query to retrieve the count of companies that have posted duplicate job listings.
+-- =====================================================   
+ DROP TABLE IF EXISTS job_listings;
+ 
+CREATE TABLE job_listings (
+job_id INTEGER PRIMARY KEY,
+company_id INTEGER,
+title TEXT,
+description TEXT
+);
+-- Insert sample records
+INSERT INTO job_listings (job_id, company_id, title, description) VALUES
+(248, 827, 'Business Analyst', 'Business analyst evaluates past and current business data with the primary goal of improving decision-making processes within organizations.'),
+(149, 845, 'Business Analyst', 'Business analyst evaluates past and current business data with the primary goal of improving decision-making processes within organizations.'),
+(945, 345, 'Data Analyst', 'Data analyst reviews data to identify key insights into a business''s customers and ways the data can be used to solve problems.'),
+(164, 345, 'Data Analyst', 'Data analyst reviews data to identify key insights into a business''s customers and ways the data can be used to solve problems.'),
+(172, 244, 'Data Engineer', 'Data engineer works in a variety of settings to build systems that collect, manage, and convert raw data into usable information for data scientists and business analysts to interpret.'),
+(573, 456, 'Software Engineer', 'Software engineer designs, develops,tests, and maintains software applications.'),
+(324, 789, 'Software Engineer', 'Software engineer designs, develops,tests, and maintains software applications.'),
+(890, 123, 'Data Scientist', 'Data scientist analyzes and interprets complex data to help organizations make informed decisions.'),
+(753, 123, 'Data Scientist', 'Data scientist analyzes and interprets complex data to help organizations make informed decisions.'); 
+ 
+ 
+SELECT
+	company_id,
+	COUNT(DISTINCT company_id) AS duplicate_companies
+FROM
+	job_listings
+GROUP BY
+	company_id,
+    title,
+    description
+having
+	COUNT(*) > 1;
+ 
+ 
+-- =====================================================
+-- Identify the region with the lowest sales amount for the previous month. Return the region name and total sales amount.
+-- =====================================================   
+ DROP TABLE IF EXISTS Sales;
+ 
+CREATE TABLE Sales (
+SaleID SERIAL PRIMARY KEY,
+Region VARCHAR(50),
+Amount DECIMAL(10, 2),
+SaleDate DATE
+);
+-- Insert sample records
+INSERT INTO Sales (Region, Amount, SaleDate) VALUES
+('North', 5000.00, '2024-02-01'),
+('South', 6000.00, '2024-02-02'),
+('East', 4500.00, '2024-02-03'),
+('West', 7000.00, '2024-02-04'),
+('North', 5500.00, '2024-02-05'),
+('South', 6500.00, '2024-02-06'),
+('East', 4800.00, '2024-02-07'),
+('West', 7200.00, '2024-02-08'),
+('North', 5200.00, '2024-02-09'),
+('South', 6200.00, '2024-02-10'),
+('East', 4700.00, '2024-02-11'),
+('West', 7100.00, '2024-02-12'),
+('North', 5300.00, '2024-02-13'),
+('South', 6300.00, '2024-02-14'),
+('East', 4600.00, '2024-02-15'),
+('West', 7300.00, '2024-02-16'),
+('North', 5400.00, '2024-02-17'),
+('South', 6400.00, '2024-02-18'),
+('East', 4900.00, '2024-02-19'),
+('West', 7400.00, '2024-02-20'),
+('North', 5600.00, '2024-02-21'),
+('South', 6600.00, '2024-02-22'),
+('East', 5000.00, '2024-02-23'),
+('West', 7500.00, '2024-02-24'),
+('North', 5700.00, '2024-02-25'),
+('South', 6700.00, '2024-02-26'),
+('East', 5100.00, '2024-02-27'),
+('West', 7600.00, '2024-02-28'); 
+ 
+
+SELECT 
+	Region, 
+    SUM(Amount) AS total_sales
+FROM 
+	Sales
+WHERE 
+	SaleDate BETWEEN '2024-02-01' AND '2024-02-29'
+GROUP BY 
+	Region
+ORDER BY 
+	total_sales ASC
+LIMIT 1;
