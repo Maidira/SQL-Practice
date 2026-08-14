@@ -4431,3 +4431,253 @@ GROUP BY
 ORDER BY 
 	total_sales ASC
 LIMIT 1;
+
+
+-- =====================================================
+-- Find the median within a series of numbers in SQL. 
+-- ===================================================== 
+DROP TABLE IF EXISTS tiktok;
+
+CREATE TABLE tiktok (
+views INT
+);
+-- Insert records into the tiktok table
+INSERT INTO tiktok (views) VALUES
+(100), (800), (350),
+(150), (600),
+(700), (700), (950);
+
+
+WITH ranked AS (
+    SELECT
+        views,
+        ROW_NUMBER() OVER (ORDER BY views) AS rn,
+        COUNT(*) OVER () AS total_rows
+    FROM tiktok
+)
+SELECT AVG(views) AS median
+FROM ranked
+WHERE rn IN (
+    FLOOR((total_rows + 1) / 2),
+    FLOOR((total_rows + 2) / 2)
+);
+
+
+-- =====================================================
+-- Identify the region with the lowest sales amount for the previous month.Return the region name and the total sale amount.
+-- ===================================================== 
+DROP TABLE IF EXISTS Sales;
+
+CREATE TABLE Sales (
+SaleID SERIAL PRIMARY KEY,
+Region VARCHAR(50),
+Amount DECIMAL(10, 2),
+SaleDate DATE
+);
+-- Insert sample data into Sales table
+INSERT INTO Sales (Region, Amount, SaleDate) VALUES
+('North', 5000.00, '2024-02-01'),
+('South', 6000.00, '2024-02-02'),
+('East', 4500.00, '2024-02-03'),
+('West', 7000.00, '2024-02-04'),
+('North', 5500.00, '2024-02-05'),
+('South', 6500.00, '2024-02-06'),
+('East', 4800.00, '2024-02-07'),
+('West', 7200.00, '2024-02-08'),
+('North', 5200.00, '2024-02-09'),
+('South', 6200.00, '2024-02-10'),
+('East', 4700.00, '2024-02-11'),
+('West', 7100.00, '2024-02-12'),
+('North', 5300.00, '2024-02-13'),
+('South', 6300.00, '2024-02-14'),
+('East', 4600.00, '2024-02-15'),
+('West', 7300.00, '2024-02-16'),
+('North', 5400.00, '2024-02-17'),
+('South', 6400.00, '2024-02-18'),
+('East', 4900.00, '2024-02-19'),
+('West', 7400.00, '2024-02-20'),
+('North', 5600.00, '2024-02-21'),
+('South', 6600.00, '2024-02-22'),
+('East', 5000.00, '2024-02-23'),
+('West', 7500.00, '2024-02-24'),
+('North', 5700.00, '2024-02-25'),
+('South', 6700.00, '2024-02-26'),
+('East', 5100.00, '2024-02-27'),
+('West', 7600.00, '2024-02-28');
+
+
+SELECT
+	Region,
+    SUM(Amount) AS total_sales
+FROM
+	Sales
+WHERE
+	SaleDate >= DATE_SUB(CURRENT_DATE(), Interval 1 MONTH)
+    AND
+	SaleDate < CURDATE()
+GROUP BY
+	Region
+ORDER BY
+	total_sales ASC
+LIMIT 1;
+
+
+-- =====================================================
+-- Which metro city had the highest number of restaurant orders in September 2021?
+-- ===================================================== 
+ DROP TABLE IF EXISTS restaurant_orders;
+ 
+CREATE TABLE restaurant_orders (
+city VARCHAR(50),
+restaurant_id INT,
+order_id INT,
+order_date DATE
+);
+-- Insert sample records into restaurant_orders
+INSERT INTO restaurant_orders (city, restaurant_id, order_id, order_date)
+VALUES
+('Delhi', 101, 1, '2021-09-05'),
+('Bangalore', 102, 12, '2021-09-08'),
+('Bangalore', 102, 13, '2021-09-08'),
+('Bangalore', 102, 14, '2021-09-08'),
+('Mumbai', 103, 3, '2021-09-10'),
+('Mumbai', 103, 30, '2021-09-10'),
+('Chennai', 104, 4, '2021-09-15'),
+('Delhi', 105, 5, '2021-09-20'),
+('Bangalore', 106, 6, '2021-09-25'),
+('Mumbai', 107, 7, '2021-09-28'),
+('Chennai', 108, 8, '2021-09-30'),
+('Delhi', 109, 9, '2021-10-05'),
+('Bangalore', 110, 10, '2021-10-08'),
+('Mumbai', 111, 11, '2021-10-10'),
+('Chennai', 112, 12, '2021-10-15'),
+('Kolkata', 113, 13, '2021-10-20'),
+('Hyderabad', 114, 14, '2021-10-25'),
+('Pune', 115, 15, '2021-10-28'),
+('Jaipur', 116, 16, '2021-10-30'); 
+
+
+SELECT
+	city,
+    COUNT(order_id) AS total_orders
+FROM
+	restaurant_orders
+WHERE
+	city IN ('Delhi', 'Mumbai', 'Bangalore', 'Hyderabad')
+    AND order_date >= '2021-09-01'
+	AND order_date < '2021-10-01'
+GROUP BY
+	city
+ORDER BY
+	total_orders DESC
+LIMIT 1;
+
+
+-- =====================================================
+-- Identify the drivers with the highest average rating in the last 6 months. For each driver, calculate their average rating, the number of complete rides, and rank them based on their average rating in descending order. Display the driver ID, average rating, number of completed rides, and rank.
+-- ===================================================== 
+DROP TABLE IF EXISTS rapido_rides;
+
+CREATE TABLE rapido_rides (
+ride_id INT PRIMARY KEY,
+driver_id INT,
+rating DECIMAL(3, 2), -- Rating out of 5
+ride_status VARCHAR(20), -- Completed, Cancelled, etc.
+ride_date DATE
+);
+-- Insert sample records into rapido_rides
+INSERT INTO rapido_rides (ride_id, driver_id, rating, ride_status, ride_date) VALUES
+(101, 1, 4.5, 'Completed', '2026-05-01'),
+(102, 2, 4.7, 'Completed', '2026-05-05'),
+(103, 3, 4.3, 'Completed', '2026-06-01'),
+(104, 1, 3.8, 'Completed', '2026-06-10'),
+(105, 2, 5.0, 'Completed', '2026-06-15'),
+(106, 4, 4.6, 'Completed', '2026-07-01'),
+(107, 1, 4.7, 'Completed', '2026-07-10'),
+(108, 3, 4.4, 'Completed', '2026-07-15'),
+(109, 2, 4.9, 'Completed', '2026-07-20'),
+(110, 4, 3.9, 'Completed', '2026-08-01'),
+(111, 1, 4.8, 'Completed', '2026-08-05'),
+(112, 3, 4.2, 'Completed', '2026-08-10'),
+(113, 2, 4.6, 'Completed', '2026-08-15'),
+(114, 4, 4.1, 'Completed', '2026-04-01'),
+(115, 1, 4.9, 'Completed', '2026-04-05'),
+(116, 3, 4.0, 'Completed', '2026-04-10');
+
+
+WITH driver_ratings AS (
+	SELECT 
+		driver_id,
+	    COUNT(ride_id) AS total_rides,
+		AVG(rating) AS avg_rating
+	FROM 
+		rapido_rides
+	WHERE 
+		ride_status = 'Completed'
+		AND 
+        ride_date >= CURDATE() - INTERVAL 6 MONTH
+	GROUP BY driver_id
+)
+SELECT 
+	driver_id,
+	avg_rating,
+	total_rides,
+	RANK() OVER (ORDER BY avg_rating DESC) AS rating_rank
+FROM 
+	driver_ratings
+ORDER BY 
+	rating_rank;
+
+
+-- =====================================================
+-- Identify the customers who have purchased eyewear or sunglasses from Lenskart in the last 3 months, along with the total number of items they have bought, the total amount spent, and their rank based on the total amount spent. Display the customer ID, total number of items, total amount spent, and rank.
+-- ===================================================== 
+DROP TABLE IF EXISTS lenskart_purchases;
+
+CREATE TABLE lenskart_purchases (
+purchase_id INT PRIMARY KEY,
+customer_id INT,
+product_name VARCHAR(255),
+product_category VARCHAR(50), 
+quantity INT,
+price DECIMAL(10, 2),
+purchase_date DATE
+);
+-- Insert sample records into lenskart_purchases
+INSERT INTO lenskart_purchases (purchase_id, customer_id, product_name, product_category, quantity, price, purchase_date) VALUES
+(101, 1, 'Aviator Sunglasses', 'Sunglasses', 1, 2500.00, '2026-05-15'),
+(102, 2, 'Round Eyewear', 'Eyewear', 2, 1500.00, '2026-06-10'),
+(103, 3, 'Wayfarer Sunglasses', 'Sunglasses', 1, 3000.00, '2026-07-01'),
+(104, 1, 'Cat Eye Sunglasses', 'Sunglasses', 1, 3500.00, '2026-07-05'),
+(105, 2, 'Square Eyewear', 'Eyewear', 1, 1200.00, '2026-07-12'),
+(106, 4, 'Polarized Sunglasses', 'Sunglasses', 2, 2000.00, '2026-08-05'),
+(107, 3, 'Goggles', 'Eyewear', 1, 1800.00, '2026-08-14'),
+(108, 1, 'Aviator Sunglasses', 'Sunglasses', 1, 2500.00, '2026-08-10'),
+(109, 5, 'Round Eyewear', 'Eyewear', 3, 1500.00, '2026-08-06'),
+(110, 2, 'Wayfarer Eyewear', 'Eyewear', 1, 2000.00, '2026-06-01'),
+(111, 6, 'Aviator Sunglasses', 'Sunglasses', 1, 2500.00, '2026-06-10'),
+(112, 7, 'Cat Eye Eyewear', 'Eyewear', 1, 3000.00, '2026-06-15');
+
+
+WITH customer_spending AS (
+	SELECT 
+		customer_id,
+		COUNT(*) AS total_items,
+		SUM(quantity * price) AS total_spent
+	FROM 
+		lenskart_purchases
+	WHERE 
+		product_category IN ('Eyewear', 'Sunglasses')
+		AND 
+        purchase_date >= CURDATE() - INTERVAL 3 MONTH
+	GROUP BY customer_id
+)
+SELECT 
+	customer_id,
+	total_items,
+	total_spent,
+	RANK() OVER (ORDER BY total_spent DESC) AS rnk
+FROM 
+	customer_spending
+ORDER BY 
+	rnk;
