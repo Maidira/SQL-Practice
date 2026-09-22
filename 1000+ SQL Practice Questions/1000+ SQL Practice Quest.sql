@@ -4681,3 +4681,161 @@ FROM
 	customer_spending
 ORDER BY 
 	rnk;
+
+
+-- =====================================================
+-- Retrieve all distinct job titles from the employee table.
+-- ===================================================== 
+DROP TABLE IF EXISTS employee;
+
+CREATE TABLE Employee (
+EmployeeID INT,
+Name VARCHAR(50),
+JobTitle VARCHAR(50),
+Department VARCHAR(50),
+Salary DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Employee (EmployeeID, Name, JobTitle, Department, Salary) VALUES
+(1, 'Alice', 'Software Engineer', 'Engineering', 120000.00),
+(2, 'Bob', 'Data Scientist', 'Data Analytics', 115000.00),
+(3, 'Charlie', 'Software Engineer', 'Engineering', 120000.00),
+(4, 'Daisy', 'HR Manager', 'Human Resources', 95000.00),
+(5, 'Eve', 'Product Manager', 'Product', 130000.00);
+
+
+SELECT
+	DISTINCT JobTitle
+FROM
+	employee;
+
+
+-- =====================================================
+-- List all distinct product categories available on the platform.
+-- ===================================================== 
+DROP TABLE IF EXISTS Product;
+
+CREATE TABLE Product (
+ProductID INT,
+ProductName VARCHAR(50),
+Category VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Product (ProductID, ProductName, Category, Price) VALUES
+(1, 'Echo Dot', 'Electronics', 49.99),
+(2, 'Fire Stick', 'Electronics', 39.99),
+(3, 'Running Shoes', 'Sports', 79.99),
+(4, 'Yoga Mat', 'Sports', 19.99),
+(5, 'Smart Bulb', 'Electronics', 24.99);
+
+
+SELECT
+	DISTINCT Category
+FROM
+	Product;
+
+
+-- =====================================================
+-- Select the product name and price of the most expensive product from the Products table.
+-- ===================================================== 
+DROP TABLE IF EXISTS Products;
+
+CREATE TABLE Products (
+ProductID INT,
+ProductName VARCHAR(50),
+Category VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Products (ProductID, ProductName, Category, Price) VALUES
+(1, 'Laptop', 'Electronics', 1200.00),
+(2, 'Smartphone', 'Electronics', 800.00),
+(3, 'Tablet', 'Electronics', 600.00),
+(4, 'Coffee Maker', 'Appliances', 100.00),
+(5, 'Toaster', 'Appliances', 50.00);
+
+
+SELECT
+	ProductName,
+    MAX(Price) AS Price
+FROM
+	Products;
+
+
+-- =====================================================
+-- List all distinct industries running ad campaigns.
+-- ===================================================== 
+DROP TABLE IF EXISTS AdCampaigns;
+
+CREATE TABLE AdCampaigns (
+CampaignID INT,
+CompanyName VARCHAR(50),
+Industry VARCHAR(50),
+Budget DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO AdCampaigns (CampaignID, CompanyName, Industry, Budget) VALUES
+(1, 'Company A', 'Retail', 5000.00),
+(2, 'Company B', 'Technology', 10000.00),
+(3, 'Company C', 'Education', 3000.00),
+(4, 'Company D', 'Healthcare', 8000.00),
+(5, 'Company E', 'Retail', 7000.00);
+
+
+SELECT
+	DISTINCT Industry
+FROM
+	AdCampaigns;
+
+
+-- =====================================================
+-- Find all genres of Netflix titles.
+-- ===================================================== 
+DROP TABLE IF EXISTS NetflixTitles;
+
+CREATE TABLE NetflixTitles (
+TitleID INT,
+TitleName VARCHAR(50),
+Genre VARCHAR(50),
+ReleaseYear INT
+);
+-- Datasets
+INSERT INTO NetflixTitles (TitleID, TitleName, Genre, ReleaseYear) VALUES
+(1, 'Stranger Things', 'Sci-Fi', 2016),
+(2, 'The Crown', 'Drama', 2016),
+(3, 'Money Heist', 'Thriller', 2017),
+(4, 'Bridgerton', 'Romance', 2020),
+(5, 'Breaking Bad', 'Crime', 2008);
+
+
+SELECT
+	DISTINCT Genre
+FROM
+	NetflixTitles;
+
+
+-- =====================================================
+-- Display distinct license types available for Microsoft software.
+-- ===================================================== 
+DROP TABLE IF EXISTS Licenses;
+
+CREATE TABLE Licenses (
+LicenseID INT,
+SoftwareName VARCHAR(50),
+LicenseType VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Licenses (LicenseID, SoftwareName, LicenseType, Price) VALUES
+(1, 'Microsoft Office', 'Personal', 69.99),
+(2, 'Microsoft Office', 'Business', 149.99),
+(3, 'Windows 11', 'Home', 119.99),
+(4, 'Windows 11', 'Pro', 199.99),
+(5, 'Azure', 'Enterprise', 499.99);
+
+
+SELECT
+	DISTINCT LicenseType
+FROM
+	Licenses;
