@@ -4839,3 +4839,245 @@ SELECT
 	DISTINCT LicenseType
 FROM
 	Licenses;
+
+
+-- =====================================================
+-- Select the first order received time on 31st December 2024 from the Orders table.
+-- ===================================================== 
+DROP TABLE IF EXISTS Orders;
+
+CREATE TABLE Orders (
+OrderID INT,
+CustomerID INT,
+OrderDate DATE,
+OrderTime TIME,
+Amount DECIMAL(10, 2)
+);
+-- Datasets (assumes all orders are for 31st December 2024)
+INSERT INTO Orders (OrderID, CustomerID, OrderDate, OrderTime, Amount) VALUES
+(1, 101, '2024-12-31', '09:30:00', 500.00),
+(2, 102, '2024-12-31', '08:15:00', 300.00),
+(3, 103, '2024-12-31', '10:00:00', 150.00),
+(4, 104, '2024-12-31', '12:45:00', 200.00),
+(5, 105, '2024-12-31', '11:00:00', 400.00);
+
+
+SELECT
+	MIN(OrderTime) AS firstOrder
+FROM
+	Orders;
+
+
+-- =====================================================
+-- Select the total price of all products from the Products table.
+-- ===================================================== 
+DROP TABLE IF EXISTS Products;
+
+CREATE TABLE Products (
+ProductID INT,
+ProductName VARCHAR(50),
+Category VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Products (ProductID, ProductName, Category, Price) VALUES
+(1, 'Laptop', 'Electronics', 1200.00),
+(2, 'Smartphone', 'Electronics', 800.00),
+(3, 'Tablet', 'Electronics', 600.00),
+(4, 'Coffee Maker', 'Appliances', 100.00),
+(5, 'Toaster', 'Appliances', 50.00);
+
+
+SELECT
+	SUM(Price) AS totalPrice
+FROM
+	Products;
+
+
+-- =====================================================
+-- Select the average salary of employees in the Employees table.
+-- ===================================================== 
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+EmployeeName VARCHAR(50),
+Department VARCHAR(50),
+Salary DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Employees (EmployeeID, EmployeeName, Department, Salary) VALUES
+(1, 'Alice', 'Engineering', 100000.00),
+(2, 'Bob', 'Engineering', 95000.00),
+(3, 'Charlie', 'HR', 70000.00),
+(4, 'David', 'HR', 75000.00),
+(5, 'Eve', 'Marketing', 60000.00);
+
+
+SELECT
+	AVG(Salary) AS avgSalary
+FROM
+	Employees;
+
+
+-- =====================================================
+-- Select the maximum salary from the Employees table.
+-- ====================================================
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+EmployeeName VARCHAR(50),
+Department VARCHAR(50),
+Salary DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Employees (EmployeeID, EmployeeName, Department, Salary) VALUES
+(1, 'Alice', 'Engineering', 100000.00),
+(2, 'Bob', 'Engineering', 95000.00),
+(3, 'Charlie', 'HR', 70000.00),
+(4, 'David', 'HR', 75000.00),
+(5, 'Eve', 'Marketing', 60000.00);
+
+
+SELECT
+	MAX(Salary) AS maxSalary
+FROM
+	employees;
+
+
+-- =====================================================
+-- Count the total number of orders placed in the Orders table.
+-- ====================================================
+DROP TABLE IF EXISTS Orders;
+
+CREATE TABLE Orders (
+OrderID INT,
+CustomerID INT,
+OrderDate DATE,
+Amount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Orders (OrderID, CustomerID, OrderDate, Amount) VALUES
+(1, 101, '2024-12-01', 50.00),
+(2, 102, '2024-12-02', 30.00),
+(3, 103, '2024-12-03', 70.00),
+(4, 104, '2024-12-04', 100.00),
+(5, 105, '2024-12-05', 25.00);
+
+
+SELECT
+	COUNT(*) AS totalOrders
+FROM
+	Orders;
+
+
+-- =====================================================
+-- Count the number of unique products in the Products table.
+-- ====================================================
+DROP TABLE IF EXISTS Products;
+
+CREATE TABLE Products (
+ProductID INT,
+ProductName VARCHAR(50),
+Category VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Products (ProductID, ProductName, Category, Price) VALUES
+(1, 'Laptop', 'Electronics', 800.00),
+(2, 'Smartphone', 'Electronics', 500.00),
+(3, 'Tablet', 'Electronics', 300.00),
+(4, 'Smartwatch', 'Accessories', 150.00),
+(5, 'Laptop', 'Electronics', 800.00);
+
+
+SELECT
+	COUNT(DISTINCT ProductName) AS numberOfProducts
+FROM
+	Products;
+
+
+-- =====================================================
+-- Count the number of customers who made an order greater than $50 from the Orders table.
+-- ====================================================
+DROP TABLE IF EXISTS Orders;
+
+CREATE TABLE Orders (
+OrderID INT,
+CustomerID INT,
+OrderDate DATE,
+Amount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Orders (OrderID, CustomerID, OrderDate, Amount) VALUES
+(1, 101, '2024-12-01', 50.00),
+(2, 102, '2024-12-02', 30.00),
+(3, 103, '2024-12-03', 70.00),
+(4, 104, '2024-12-04', 100.00),
+(5, 105, '2024-12-05', 25.00);
+
+
+SELECT 
+	COUNT(OrderID) AS OrderAbove50
+FROM
+	Orders
+WHERE
+	Amount > 50;
+
+
+-- =====================================================
+-- Count the total number of products available in each category from the Products table.
+-- ====================================================
+DROP TABLE IF EXISTS Products;
+
+CREATE TABLE Products (
+ProductID INT,
+ProductName VARCHAR(50),
+Category VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Products (ProductID, ProductName, Category, Price) VALUES
+(1, 'Laptop', 'Electronics', 800.00),
+(2, 'Smartphone', 'Electronics', 500.00),
+(3, 'Washing Machine', 'Home Appliances', 300.00),
+(4, 'Refrigerator', 'Home Appliances', 600.00),
+(5, 'Air Conditioner', 'Home Appliances', 700.00);
+
+
+SELECT
+	COUNT(ProductName) AS NumberOfProducts,
+    Category
+FROM
+	Products
+GROUP BY
+	Category;
+
+
+-- =====================================================
+-- Count the number of employees assigned to each project from the EmployeeProjects table.
+-- ====================================================
+DROP TABLE IF EXISTS EmployeeProjects;
+
+CREATE TABLE EmployeeProjects (
+EmployeeID INT,
+ProjectName VARCHAR(50),
+Department VARCHAR(50)
+);
+-- Datasets
+INSERT INTO EmployeeProjects (EmployeeID, ProjectName, Department) VALUES
+(1, 'AI Development', 'Engineering'),
+(2, 'Cloud Migration', 'Engineering'),
+(3, 'AI Development', 'Engineering'),
+(4, 'Data Analytics', 'Analytics'),
+(5, 'Cloud Migration', 'Engineering');
+
+
+SELECT 
+	ProjectName, 
+	COUNT(EmployeeID) AS EmployeeCount
+FROM 
+	EmployeeProjects
+GROUP BY 
+	ProjectName;
