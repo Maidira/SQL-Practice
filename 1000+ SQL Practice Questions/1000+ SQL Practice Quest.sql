@@ -5081,3 +5081,685 @@ FROM
 	EmployeeProjects
 GROUP BY 
 	ProjectName;
+
+
+-- =====================================================
+-- Count the number of vehicles in each type available in the Vehicles table.
+-- ====================================================
+DROP TABLE IF EXISTS Vehicles;
+
+CREATE TABLE Vehicles (
+VehicleID INT,
+VehicleType VARCHAR(50),
+Model VARCHAR(50),
+Year INT
+);
+-- Datasets
+INSERT INTO Vehicles (VehicleID, VehicleType, Model, Year) VALUES
+(1, 'Car', 'Sedan', 2022),
+(2, 'Car', 'SUV', 2021),
+(3, 'Bike', 'Mountain', 2020),
+(4, 'Car', 'Hatchback', 2023),
+(5, 'Bike', 'Road', 2021);
+
+
+SELECT 
+	VehicleType, 
+	COUNT(VehicleID) AS VehicleCount
+FROM 
+	Vehicles
+GROUP BY 
+	VehicleType;
+
+
+-- =====================================================
+-- Count the total number of student records in the Students table.
+-- ====================================================
+DROP TABLE IF EXISTS Students;
+
+CREATE TABLE Students (
+StudentID INT,
+Name VARCHAR(50),
+Grade VARCHAR(2),
+EnrollmentDate DATE
+);
+-- Datasets
+INSERT INTO Students (StudentID, Name, Grade, EnrollmentDate) VALUES
+(1, 'John Doe', 'A', '2023-01-10'),
+(2, 'Jane Smith', 'B', '2022-09-20'),
+(3, 'Sam Brown', 'A', '2021-05-15'),
+(4, 'Anna White', 'C', '2024-02-22'),
+(5, 'Peter Black', 'B', '2022-11-03');
+
+
+SELECT
+	COUNT(*)
+FROM
+	Students;
+
+
+-- =====================================================
+-- Count how many rows in the Users table have a non-null date of birth (DOB).
+-- ====================================================
+DROP TABLE IF EXISTS Users;
+
+CREATE TABLE Users (
+UserID INT,
+UserName VARCHAR(50),
+DOB DATE
+);
+-- Datasets
+INSERT INTO Users (UserID, UserName, DOB) VALUES
+(1, 'Alice', '1990-06-15'),
+(2, 'Bob', NULL),
+(3, 'Charlie', '1985-09-22'),
+(4, 'David', NULL),
+(5, 'Eve', '1992-01-11');
+
+
+SELECT
+	COUNT(UserID) AS NumberOfUsers
+FROM
+	Users
+WHERE
+	DOB IS NOT NULL;
+
+--
+SELECT COUNT(DOB) AS UsersWithDOB
+FROM Users;
+
+-- =====================================================
+-- Count how many records in the Books table have a publication year after 2010.
+-- ====================================================
+DROP TABLE IF EXISTS Books;
+
+CREATE TABLE Books (
+BookID INT,
+BookTitle VARCHAR(100),
+Author VARCHAR(50),
+PublicationYear INT
+);
+-- Datasets
+INSERT INTO Books (BookID, BookTitle, Author, PublicationYear) VALUES
+(1, 'The Great Gatsby', 'F. Scott Fitzgerald', 1925),
+(2, 'The Catcher in the Rye', 'J.D. Salinger', 1951),
+(3, 'Sapiens', 'Yuval Noah Harari', 2014),
+(4, 'Becoming', 'Michelle Obama', 2018),
+(5, 'Educated', 'Tara Westover', 2018);
+
+
+SELECT
+	COUNT(*)
+FROM
+	Books
+WHERE
+	PublicationYear > 2010;
+
+
+-- =====================================================
+-- Count the number of distinct cities in the Locations table.
+-- ====================================================
+DROP TABLE IF EXISTS Locations;
+
+CREATE TABLE Locations (
+LocationID INT,
+City VARCHAR(50),
+Country VARCHAR(50),
+Population INT
+);
+-- Datasets
+INSERT INTO Locations (LocationID, City, Country, Population) VALUES
+(1, 'Mumbai', 'India', 20000000),
+(2, 'Delhi', 'India', 19000000),
+(3, 'New York', 'USA', 8500000),
+(4, 'Los Angeles', 'USA', 4000000),
+(5, 'Mumbai', 'India', 20000000);
+
+
+SELECT
+	COUNT(DISTINCT City) AS NumberOfCity
+FROM
+	Locations;
+
+
+-- =====================================================
+-- Fetch the distinct customer IDs who made purchases in the last month.
+-- ====================================================
+DROP TABLE IF EXISTS Transactions;
+
+CREATE TABLE Transactions (
+TransactionID INT,
+CustomerID INT,
+ProductID INT,
+TransactionDate DATE,
+Amount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Transactions (TransactionID, CustomerID, ProductID, TransactionDate,
+Amount) VALUES
+(1, 101, 1, '2026-12-05', 49.99),
+(2, 102, 2, '2026-12-06', 39.99),
+(3, 101, 3, '2026-12-07', 79.99),
+(4, 103, 4, '2026-12-08', 19.99),
+(5, 104, 5, '2027-01-09', 24.99);
+
+
+SELECT 
+	DISTINCT CustomerID
+FROM 
+	Transactions
+WHERE 
+	TransactionDate >= '2026-12-05' AND TransactionDate <= '2027-01-05';
+
+
+-- =====================================================
+-- Retrieve all aircraft orders where the quantity is greater than 50 from the AircraftOrders table.
+-- ====================================================
+DROP TABLE IF EXISTS AircraftOrders;
+
+CREATE TABLE AircraftOrders (
+OrderID INT,
+CustomerName VARCHAR(50),
+AircraftModel VARCHAR(50),
+Quantity INT
+);
+-- Datasets
+INSERT INTO AircraftOrders (OrderID, CustomerName, AircraftModel, Quantity) VALUES
+(1, 'Lufthansa', 'A320', 60),
+(2, 'Air France', 'A380', 30),
+(3, 'British Airways', 'A350', 70),
+(4, 'Ryanair', 'A320', 40),
+(5, 'Iberia', 'A321', 55);
+
+
+SELECT
+	OrderID
+FROM 
+	AircraftOrders
+WHERE
+	Quantity > 50;
+
+
+-- =====================================================
+-- Retrieve all cars sold in the year 2024 from the CarSales table.
+-- ====================================================
+DROP TABLE IF EXISTS CarSales;
+
+CREATE TABLE CarSales (
+SaleID INT,
+ModelName VARCHAR(50),
+SaleYear INT,
+SaleAmount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO CarSales (SaleID, ModelName, SaleYear, SaleAmount) VALUES
+(1, 'X5', 2024, 80000.00),
+(2, 'i4', 2023, 60000.00),
+(3, '3 Series', 2024, 45000.00),
+(4, 'i7', 2022, 120000.00),
+(5, '5 Series', 2024, 65000.00);
+
+
+SELECT
+	ModelName
+FROM
+	CarSales
+WHERE
+	SaleYear = 2024;
+
+
+-- =====================================================
+-- Get all distinct Tesla vehicle models ordered.
+-- ====================================================
+DROP TABLE IF EXISTS VehicleOrders;
+
+CREATE TABLE VehicleOrders (
+OrderID INT,
+CustomerID INT,
+Model VARCHAR(50),
+OrderDate DATE,
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO VehicleOrders (OrderID, CustomerID, Model, OrderDate, Price) VALUES
+(1, 201, 'Model S', '2024-11-01', 79999.99),
+(2, 202, 'Model 3', '2024-11-02', 49999.99),
+(3, 201, 'Model X', '2024-11-03', 89999.99),
+(4, 203, 'Model 3', '2024-11-04', 49999.99),
+(5, 204, 'Model Y', '2024-11-05', 69999.99);
+
+
+SELECT
+	DISTINCT Model
+FROM
+	VehicleOrders;
+
+
+-- =====================================================
+-- Select the total amount spent by a specific customer (CustomerID = 101) from the Purchases table.
+-- ====================================================
+DROP TABLE IF EXISTS Purchases;
+
+CREATE TABLE Purchases (
+PurchaseID INT,
+CustomerID INT,
+Amount DECIMAL(10, 2),
+PurchaseDate DATE
+);
+-- Datasets
+INSERT INTO Purchases (PurchaseID, CustomerID, Amount, PurchaseDate) VALUES
+(1, 101, 250.00, '2024-01-10'),
+(2, 102, 150.00, '2024-02-20'),
+(3, 101, 100.00, '2024-03-15'),
+(4, 103, 200.00, '2024-04-01'),
+(5, 101, 50.00, '2024-05-22');
+
+
+SELECT 
+	CustomerID, 
+	SUM(Amount) AS TotalSpent
+FROM 
+	Purchases
+WHERE 
+	CustomerID = 101;
+
+
+-- =====================================================
+-- Retrieve all sales of Diesel where the quantity is between 1000 and 5000 liters from the FuelSales table.
+-- ====================================================
+DROP TABLE IF EXISTS FuelSales;
+
+CREATE TABLE FuelSales (
+SaleID INT,
+FuelType VARCHAR(50),
+QuantityLiters INT,
+SaleAmount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO FuelSales (SaleID, FuelType, QuantityLiters, SaleAmount) VALUES
+(1, 'Diesel', 1200, 2500.00),
+(2, 'Petrol', 800, 2000.00),
+(3, 'Diesel', 4000, 5000.00),
+(4, 'Diesel', 6000, 8000.00),
+(5, 'Petrol', 1500, 3000.00);
+
+
+SELECT
+	saleID,
+    FuelType,
+    QuantityLiters,
+    SaleAmount
+FROM
+	FuelSales
+WHERE
+	FuelType = 'Diesel'
+    AND
+    QuantityLiters BETWEEN 1000 AND 5000;
+
+
+-- =====================================================
+-- Retrieve all products with "Table" in their name and a price less than 200 EUR from the ProductInventory table.
+-- ====================================================
+DROP TABLE IF EXISTS ProductInventory;
+
+CREATE TABLE ProductInventory (
+ProductID INT,
+ProductName VARCHAR(50),
+Price DECIMAL(10, 2),
+Stock INT
+);
+-- Datasets
+INSERT INTO ProductInventory (ProductID, ProductName, Price, Stock) VALUES
+(1, 'Dining Table', 150.00, 100),
+(2, 'Coffee Table', 180.00, 200),
+(3, 'Office Chair', 100.00, 300),
+(4, 'Bed Frame', 250.00, 150),
+(5, 'Side Table', 90.00, 500);
+
+
+SELECT
+	*
+FROM
+	ProductInventory
+WHERE
+	ProductName LIKE '%Table%'
+    AND
+    Price < 200;
+
+
+-- =====================================================
+-- Retrieve all users with a Premium subscription who joined after 2022 from the UserSubscriptions table.
+-- ====================================================
+DROP TABLE IF EXISTS UserSubscriptions;
+
+CREATE TABLE UserSubscriptions (
+UserID INT,
+UserName VARCHAR(50),
+SubscriptionType VARCHAR(50),
+JoinYear INT
+);
+-- Datasets
+INSERT INTO UserSubscriptions (UserID, UserName, SubscriptionType, JoinYear) VALUES
+(1, 'Alice', 'Premium', 2023),
+(2, 'Bob', 'Free', 2022),
+(3, 'Charlie', 'Premium', 2024),
+(4, 'Diana', 'Free', 2021),
+(5, 'Eve', 'Premium', 2021);
+
+
+SELECT
+	*
+FROM
+	UserSubscriptions
+WHERE
+	SubscriptionType = 'Premium'
+	AND
+    JoinYear > 2022;
+
+
+-- =====================================================
+-- Retrieve all chocolate products sold in either Germany or France with sales above 500 units from the ProductSales table.
+-- ====================================================
+DROP TABLE IF EXISTS ProductSales;
+
+CREATE TABLE ProductSales (
+SaleID INT,
+ProductCategory VARCHAR(50),
+Country VARCHAR(50),
+UnitsSold INT
+);
+-- Datasets
+INSERT INTO ProductSales (SaleID, ProductCategory, Country, UnitsSold) VALUES
+(1, 'Chocolate', 'Germany', 600),
+(2, 'Chocolate', 'France', 700),
+(3, 'Beverage', 'Germany', 400),
+(4, 'Snacks', 'France', 300),
+(5, 'Chocolate', 'Spain', 200);
+
+
+SELECT
+	*
+FROM 
+	ProductSales
+WHERE
+	ProductCategory = 'Chocolate'
+	AND
+    Country IN ('Germany', 'France')
+    AND
+    UnitsSold > 500;
+
+
+-- =====================================================
+-- Retrieve all users whose average daily data usage exceeds 2GB but is below 5GB from the NetworkUsage table.
+-- ====================================================
+DROP TABLE IF EXISTS NetworkUsage;
+
+CREATE TABLE NetworkUsage (
+UsageID INT,
+UserID INT,
+AverageDailyUsageGB DECIMAL(5, 2)
+);
+-- Datasets
+INSERT INTO NetworkUsage (UsageID, UserID, AverageDailyUsageGB) VALUES
+(1, 101, 2.5),
+(2, 102, 1.8),
+(3, 103, 4.7),
+(4, 104, 5.5),
+(5, 105, 3.2);
+
+
+SELECT
+	*
+FROM
+	NetworkUsage
+WHERE
+	AverageDailyUsageGB > 2
+    AND
+    AverageDailyUsageGB < 5;
+
+
+-- =====================================================
+-- Retrieve the distinct product names along with their corresponding average price from each manufacturer.
+-- ====================================================
+DROP TABLE IF EXISTS Products;
+
+CREATE TABLE Products (
+ProductID INT,
+ProductName VARCHAR(50),
+Manufacturer VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- datasets
+INSERT INTO Products (ProductID, ProductName, Manufacturer, Price) VALUES
+(1, 'Laptop', 'Company A', 1200.00),
+(2, 'Smartphone', 'Company B', 800.00),
+(3, 'Tablet', 'Company A', 600.00),
+(4, 'Smartwatch', 'Company B', 200.00),
+(5, 'Laptop', 'Company A', 1100.00);
+
+
+SELECT
+	ProductName,
+	AVG(Price) AS AveragePrice
+FROM
+	Products
+GROUP BY
+	ProductName;
+
+
+-- =====================================================
+-- Select the customer names along with their corresponding order IDs and the total amount spent for each order.
+-- ====================================================
+DROP TABLE IF EXISTS Orders;
+
+CREATE TABLE Orders (
+OrderID INT,
+CustomerID INT,
+CustomerName VARCHAR(50),
+Amount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Orders (OrderID, CustomerID, CustomerName, Amount) VALUES
+(1, 101, 'Alice', 250.00),
+(2, 102, 'Bob', 150.00),
+(3, 101, 'Alice', 100.00),
+(4, 103, 'Charlie', 200.00),
+(5, 102, 'Bob', 50.00);
+
+
+SELECT
+	OrderID,
+    CustomerID,
+    CustomerName,
+    SUM(Amount) AS totalAmount
+FROM
+	Orders
+GROUP BY
+	OrderID, CustomerID;
+
+
+-- =====================================================
+-- Fetch all distinct ride types offered by Uber, along with the average price for each ride type.
+-- ====================================================
+DROP TABLE IF EXISTS Rides;
+
+CREATE TABLE Rides (
+RideID INT,
+CustomerID INT,
+RideType VARCHAR(50),
+Distance DECIMAL(5, 2),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Rides (RideID, CustomerID, RideType, Distance, Price) VALUES
+(1, 401, 'UberX', 5.2, 12.50),
+(2, 402, 'UberXL', 10.5, 25.00),
+(3, 403, 'UberX', 7.8, 15.00),
+(4, 404, 'Uber Black', 3.2, 20.00),
+(5, 405, 'UberXL', 8.1, 30.00);
+
+
+SELECT
+	RideType,
+    AVG(Price) AS AveragePrice
+FROM
+	Rides
+GROUP BY
+	RideType;
+
+
+-- =====================================================
+-- Select the average salary per department and the department with the highest average salary.
+-- ====================================================
+DROP TABLE IF EXISTS Employees;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+EmployeeName VARCHAR(50),
+Department VARCHAR(50),
+Salary DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Employees (EmployeeID, EmployeeName, Department, Salary) VALUES
+(1, 'Alice', 'Engineering', 100000.00),
+(2, 'Bob', 'Engineering', 95000.00),
+(3, 'Charlie', 'HR', 70000.00),
+(4, 'David', 'HR', 75000.00),
+(5, 'Eve', 'Marketing', 60000.00);
+
+
+SELECT
+	Department,
+    AVG(Salary) AS AverageSalary
+FROM
+	Employees
+GROUP BY
+	Department
+ORDER BY
+	AverageSalary DESC
+LIMIT
+	1;
+
+
+-- =====================================================
+-- Find the highest and lowest priced products from each category.
+-- ====================================================
+DROP TABLE IF EXISTS Products;
+
+CREATE TABLE Products (
+ProductID INT,
+ProductName VARCHAR(50),
+Category VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Products (ProductID, ProductName, Category, Price) VALUES
+(1, 'Laptop', 'Electronics', 1200.00),
+(2, 'Smartphone', 'Electronics', 800.00),
+(3, 'Tablet', 'Electronics', 600.00),
+(4, 'Coffee Maker', 'Appliances', 100.00),
+(5, 'Toaster', 'Appliances', 50.00);
+
+
+SELECT
+	Category,
+    MAX(Price) AS MaxPrice,
+    MIN(Price) AS MinPrice
+FROM
+	Products
+GROUP BY
+	Category;
+
+
+-- =====================================================
+-- Select the total amount spent by each customer, along with the date of their first and last purchase.
+-- ====================================================
+DROP TABLE IF EXISTS Purchases;
+
+CREATE TABLE Purchases (
+PurchaseID INT,
+CustomerID INT,
+CustomerName VARCHAR(50),
+Amount DECIMAL(10, 2),
+PurchaseDate DATE
+);
+-- Datasets
+INSERT INTO Purchases (PurchaseID, CustomerID, CustomerName, Amount, PurchaseDate
+) VALUES
+(1, 101, 'Alice', 250.00, '2024-01-10'),
+(2, 102, 'Bob', 150.00, '2024-02-20'),
+(3, 101, 'Alice', 100.00, '2024-03-15'),
+(4, 103, 'Charlie', 200.00, '2024-04-01'),
+(5, 102, 'Bob', 50.00, '2024-05-22');
+
+
+SELECT
+	CustomerName,
+    SUM(Amount) AS TotalAmount,
+    MIN(PurchaseDate) AS MinDate,
+    MAX(PurchaseDate) AS MaxDate
+FROM
+	Purchases
+GROUP BY
+	CustomerName;
+
+
+-- =====================================================
+-- Find the number of missions launched by each country and filter those with more than 2 missions from the SpaceMissions table.
+-- ====================================================
+DROP TABLE IF EXISTS SpaceMissions;
+
+CREATE TABLE SpaceMissions (
+MissionID INT,
+MissionName VARCHAR(50),
+LaunchCountry VARCHAR(50),
+LaunchDate DATE
+);
+-- Datasets
+INSERT INTO SpaceMissions (MissionID, MissionName, LaunchCountry, LaunchDate) VALUES
+(1, 'Apollo 11', 'USA', '1969-07-16'),
+(2, 'Luna 2', 'USSR', '1959-09-12'),
+(3, 'Voyager 1', 'USA', '1977-09-05'),
+(4, 'Mars Rover', 'USA', '2003-06-10'),
+(5, 'Venera 7', 'USSR', '1970-08-17');
+
+
+SELECT
+	LaunchCountry,
+    COUNT(DISTINCT MissionID) AS TotalMission
+FROM
+	SpaceMissions
+GROUP BY
+	LaunchCountry
+HAVING
+	TotalMission > 2;
+
+
+-- =====================================================
+-- List the number of aircraft delivered for each model and filter for models with total deliveries exceeding 50 from the AircraftDeliveries table.
+-- ====================================================
+DROP TABLE IF EXISTS AircraftDeliveries;
+
+CREATE TABLE AircraftDeliveries (
+DeliveryID INT,
+Model VARCHAR(50),
+UnitsDelivered INT
+);
+-- Datasets
+INSERT INTO AircraftDeliveries (DeliveryID, Model, UnitsDelivered) VALUES
+(1, 'A320', 30),
+(2, 'A380', 20),
+(3, 'A350', 60),
+(4, 'A320', 40),
+(5, 'A321', 70);
+
+
+SELECT
+	Model,
+    SUM(UnitsDelivered) AS TotalAircraft
+FROM
+	AircraftDeliveries
+GROUP BY
+	Model
+HAVING
+	SUM(UnitsDelivered) > 50;
