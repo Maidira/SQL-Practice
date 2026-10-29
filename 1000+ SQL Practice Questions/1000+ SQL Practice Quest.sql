@@ -5763,3 +5763,364 @@ GROUP BY
 	Model
 HAVING
 	SUM(UnitsDelivered) > 50;
+
+
+-- =====================================================
+-- Find the total quantity of fuel sold for each type and filter fuel types with total sales exceeding 5000 liters from the FuelTypes table.
+-- ====================================================
+DROP TABLE IF EXISTS FuelTypes;
+
+CREATE TABLE FuelTypes (
+SaleID INT,
+FuelType VARCHAR(50),
+QuantityLiters INT
+);
+-- Datasets with additional records
+INSERT INTO FuelTypes (SaleID, FuelType, QuantityLiters) VALUES
+(1, 'Diesel', 2000),
+(2, 'Petrol', 1800),
+(3, 'Diesel', 3500),
+(4, 'Petrol', 4000),
+(5, 'Gasoline', 1000),
+(6, 'Diesel', 4500),
+(7, 'Petrol', 2200),
+(8, 'Diesel', 6000),
+(9, 'Gasoline', 2000),
+(10, 'Diesel', 3000),
+(11, 'Petrol', 5000),
+(12, 'Gasoline', 1500);
+
+
+SELECT
+	FuelType,
+    SUM(QuantityLiters) AS TotalSales
+FROM
+	FuelTypes
+GROUP BY
+	FuelType
+HAVING
+	TotalSales > 5000;
+    
+
+-- =====================================================
+-- Find the total number of streams for each artist and filter for artists with more than 1000 streams from the MusicStreams table.
+-- ====================================================
+DROP TABLE IF EXISTS MusicStreams;
+
+CREATE TABLE MusicStreams (
+StreamID INT,
+ArtistName VARCHAR(50),
+Streams INT
+);
+-- Datasets with additional records
+INSERT INTO MusicStreams (StreamID, ArtistName, Streams) VALUES
+(1, 'Taylor Swift', 1200),
+(2, 'Ed Sheeran', 800),
+(3, 'Drake', 2000),
+(4, 'BTS', 1500),
+(5, 'Adele', 700),
+(6, 'Billie Eilish', 1800),
+(7, 'Justin Bieber', 2200),
+(8, 'Ariana Grande', 2500),
+(9, 'Post Malone', 3200),
+(10, 'Lil Nas X', 1100),
+(11, 'Shawn Mendes', 1200),
+(12, 'The Weeknd', 500);
+
+
+SELECT
+	ArtistName,
+    SUM(Streams) AS TotalStreams
+FROM
+	MusicStreams
+GROUP BY 
+	ArtistName
+HAVING
+	TotalStreams > 1000;
+
+
+-- =====================================================
+-- Count the distinct products sold for each category and filter categories with more tha 2 distinct products from the ProductCategories table.
+-- ====================================================
+DROP TABLE IF EXISTS ProductCategories;
+
+CREATE TABLE ProductCategories (
+ProductID INT,
+CategoryName VARCHAR(50),
+ProductName VARCHAR(50)
+);
+-- Datasets with more product entries
+INSERT INTO ProductCategories (ProductID, CategoryName, ProductName) VALUES
+(1, 'Chocolate', 'KitKat'),
+(2, 'Beverages', 'Nescafe'),
+(3, 'Chocolate', 'Munch'),
+(4, 'Beverages', 'Nestea'),
+(5, 'Chocolate', 'MilkyBar'),
+(6, 'Chocolate', 'DairyMilk'),
+(7, 'Beverages', 'Lipton'),
+(8, 'Beverages', 'CocaCola'),
+(9, 'Snacks', 'Lays'),
+(10, 'Snacks', 'Doritos');
+
+
+SELECT
+	CategoryName,
+    COUNT(DISTINCT ProductName) AS NumberOfProducts
+FROM
+	ProductCategories
+GROUP BY
+	CategoryName
+HAVING
+	NumberOfProducts > 2;
+	
+
+-- =====================================================
+-- Calculate the total data usage for each plan type and filter plans with data usage exceeding 50 GB from the NetworkUsage table.
+-- ====================================================
+DROP TABLE IF EXISTS NetworkUsage;
+
+CREATE TABLE NetworkUsage (
+UsageID INT,
+PlanType VARCHAR(50),
+DataUsageGB DECIMAL(5, 2)
+);
+-- Datasets with more data entries
+INSERT INTO NetworkUsage (UsageID, PlanType, DataUsageGB) VALUES
+(1, 'Unlimited', 25.5),
+(2, 'Family', 30.0),
+(3, 'Unlimited', 35.0),
+(4, 'Prepaid', 20.5),
+(5, 'Family', 25.0),
+(6, 'Unlimited', 15.0),
+(7, 'Prepaid', 10.0),
+(8, 'Family', 10.0),
+(9, 'Unlimited', 40.0),
+(10, 'Family', 22.0),
+(11, 'Unlimited', 50.0),
+(12, 'Prepaid', 40.0),
+(13, 'Family', 55.0),
+(14, 'Unlimited', 60.0),
+(15, 'Prepaid', 30.0),
+(16, 'Family', 45.0),
+(17, 'Unlimited', 70.0),
+(18, 'Prepaid', 50.0),
+(19, 'Family', 35.0),
+(20, 'Unlimited', 100.0);
+
+
+SELECT
+	PlanType,
+    SUM(DataUsageGB) AS TotalUsage
+FROM
+	NetworkUsage
+GROUP BY
+	PlanType
+HAVING
+	TotalUsage > 50;
+
+
+-- =====================================================
+-- Find the total order amount for each customer and filter customers who spent more than 500 EUR.
+-- ====================================================
+DROP TABLE IF EXISTS CustomerOrders;
+
+CREATE TABLE CustomerOrders (
+OrderID INT,
+CustomerName VARCHAR(50),
+OrderAmount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO CustomerOrders (OrderID, CustomerName, OrderAmount) VALUES
+(1, 'Alice', 150.00),
+(2, 'Bob', 400.00),
+(3, 'Charlie', 550.00),
+(4, 'Diana', 200.00),
+(5, 'Eve', 300.00),
+(6, 'Frank', 600.00),
+(7, 'Grace', 700.00),
+(8, 'Hannah', 800.00),
+(9, 'Ivan', 450.00),
+(10, 'Jack', 250.00),
+(11, 'Kathy', 650.00),
+(12, 'Leo', 100.00),
+(13, 'Mia', 1200.00),
+(14, 'Nina', 350.00),
+(15, 'Oscar', 800.00);
+
+
+SELECT
+	CustomerName,
+    SUM(OrderAmount) AS TotalAmount
+FROM
+	CustomerOrders
+GROUP BY
+	CustomerName
+HAVING
+	TotalAmount > 500;
+
+
+-- =====================================================
+-- Count the number of returns for each category and filter categories with more than 3 returns.
+-- ====================================================
+DROP TABLE IF EXISTS ProductReturns;
+
+CREATE TABLE ProductReturns (
+ReturnID INT,
+CategoryName VARCHAR(50),
+ReturnReason VARCHAR(100)
+);
+-- Datasets
+INSERT INTO ProductReturns (ReturnID, CategoryName, ReturnReason) VALUES
+(1, 'Shoes', 'Size issue'),
+(2, 'Apparel', 'Defect'),
+(3, 'Shoes', 'Damaged'),
+(4, 'Apparel', 'Color mismatch'),
+(5, 'Shoes', 'Wrong size'),
+(6, 'Shoes', 'Quality issue'),
+(7, 'Apparel', 'Defect'),
+(8, 'Shoes', 'Size issue'),
+(9, 'Accessories', 'Color mismatch'),
+(10, 'Shoes', 'Wrong size'),
+(11, 'Shoes', 'Damaged'),
+(12, 'Apparel', 'Size issue'),
+(13, 'Accessories', 'Defect'),
+(14, 'Shoes', 'Quality issue'),
+(15, 'Apparel', 'Fit issue'),
+(16, 'Shoes', 'Wrong size'),
+(17, 'Accessories', 'Color mismatch'),
+(18, 'Shoes', 'Defect'),
+(19, 'Apparel', 'Defect'),
+(20, 'Shoes', 'Size issue');
+
+
+SELECT
+	CategoryName,
+    COUNT(ReturnReason) AS TotalReturns
+FROM
+	ProductReturns
+GROUP BY
+	CategoryName
+HAVING
+	TotalReturns > 3;
+
+
+-- =====================================================
+-- Find the total absences for each department and filter departments with total absences greater than 20.
+-- ====================================================
+DROP TABLE IF EXISTS EmployeeAbsences;
+
+CREATE TABLE EmployeeAbsences (
+AbsenceID INT,
+Department VARCHAR(50),
+Absences INT
+);
+-- Datasets
+INSERT INTO EmployeeAbsences (AbsenceID, Department, Absences) VALUES
+(1, 'Engineering', 12),
+(2, 'HR', 5),
+(3, 'Marketing', 10),
+(4, 'Engineering', 15),
+(5, 'HR', 8),
+(6, 'Engineering', 10),
+(7, 'Marketing', 7),
+(8, 'HR', 4),
+(9, 'Engineering', 20),
+(10, 'Sales', 12),
+(11, 'Engineering', 5),
+(12, 'Marketing', 15),
+(13, 'Sales', 5),
+(14, 'HR', 6),
+(15, 'Sales', 8),
+(16, 'Marketing', 9),
+(17, 'Engineering', 13),
+(18, 'Sales', 10),
+(19, 'HR', 3),
+(20, 'Marketing', 10);
+
+
+SELECT
+	Department,
+    SUM(Absences) AS TotalAbsences
+FROM
+	EmployeeAbsences
+GROUP BY
+	Department
+HAVING
+	TotalAbsences > 20;
+
+
+-- =====================================================
+-- Find the number of books borrowed by each member and filter members who borrowed more than 10 books in total.
+-- ====================================================
+DROP TABLE IF EXISTS BookBorrowing;
+
+CREATE TABLE BookBorrowing (
+BorrowID INT,
+MemberID INT,
+BookTitle VARCHAR(100),
+BorrowCount INT
+);
+-- Datasets
+INSERT INTO BookBorrowing (BorrowID, MemberID, BookTitle, BorrowCount) VALUES
+(1, 101, 'Introduction to SQL', 3),
+(2, 102, 'Advanced SQL', 5),
+(3, 103, 'Database Design', 4),
+(4, 101, 'Data Structures', 2),
+(5, 102, 'Algorithms', 6),
+(6, 104, 'Operating Systems', 1),
+(7, 105, 'Computer Networks', 7),
+(8, 101, 'Machine Learning', 3),
+(9, 103, 'Web Development', 6),
+(10, 105, 'Cloud Computing', 5);
+
+
+SELECT
+	MemberID,
+    SUM(BorrowCount) AS TotalBorrowCount
+FROM
+	BookBorrowing
+GROUP BY
+	MemberID
+HAVING
+	TotalBorrowCount > 10;
+
+
+-- =====================================================
+-- Find the total number of patient visits by department and filter departments with more than 20 visits.
+-- ====================================================
+DROP TABLE IF EXISTS PatientVisits;
+
+CREATE TABLE PatientVisits (
+VisitID INT,
+Department VARCHAR(50),
+PatientID INT,
+VisitCount INT
+);
+-- Datasets
+INSERT INTO PatientVisits (VisitID, Department, PatientID, VisitCount) VALUES
+(1, 'Cardiology', 201, 3),
+(2, 'Neurology', 202, 4),
+(3, 'Orthopedics', 203, 5),
+(4, 'Cardiology', 204, 6),
+(5, 'Neurology', 205, 7),
+(6, 'Orthopedics', 206, 2),
+(7, 'Pediatrics', 207, 8),
+(8, 'Cardiology', 208, 4),
+(9, 'Orthopedics', 209, 5),
+(10, 'Pediatrics', 210, 5),
+(11, 'Neurology', 211, 6),
+(12, 'Orthopedics', 212, 4),
+(13, 'Cardiology', 213, 3),
+(14, 'Pediatrics', 214, 9),
+(15, 'Orthopedics', 215, 6);
+
+
+SELECT
+	Department,
+    SUM(VisitCount) AS TotalVisitCount
+FROM
+	PatientVisits
+GROUP BY
+	Department
+HAVING
+	TotalVisitCount > 20;
