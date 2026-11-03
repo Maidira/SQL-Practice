@@ -6124,3 +6124,310 @@ GROUP BY
 	Department
 HAVING
 	TotalVisitCount > 20;
+
+
+-- =====================================================
+-- Find the top 5 customers who spent the most on products in each product category. Include only customers who have spent more than 1000 EUR in a single category and sort by the total amount spent in descending order.
+-- ==================================================== 
+DROP TABLE IF EXISTS ProductSales;
+
+CREATE TABLE ProductSales (
+SaleID INT,
+ProductID INT,
+ProductName VARCHAR(100),
+Category VARCHAR(50),
+CustomerID INT,
+SaleAmount DECIMAL(10, 2),
+SaleDate DATE
+);
+-- Datasets
+INSERT INTO ProductSales (SaleID, ProductID, ProductName, Category, CustomerID, SaleAmount, SaleDate) VALUES
+(1, 101, 'Laptop', 'Electronics', 201, 1200.00, '2023-01-01'),
+(2, 102, 'Phone', 'Electronics', 202, 800.00, '2023-01-10'),
+(3, 103, 'Shoes', 'Apparel', 201, 150.00, '2023-02-15'),
+(4, 104, 'Jacket', 'Apparel', 203, 350.00, '2023-02-20'),
+(5, 105, 'Headphones', 'Electronics', 204, 300.00, '2023-03-05'),
+(6, 106, 'Smartwatch', 'Electronics', 201, 900.00, '2023-03-10'),
+(7, 107, 'Shirt', 'Apparel', 202, 100.00, '2023-04-01'),
+(8, 108, 'Laptop', 'Electronics', 203, 1300.00, '2023-04-05'),
+(9, 109, 'Phone', 'Electronics', 205, 500.00, '2023-04-10'),
+(10, 110, 'Shoes', 'Apparel', 206, 200.00, '2023-05-15'),
+(11, 111, 'Tablet', 'Electronics', 207, 1100.00, '2023-05-25'),
+(12, 112, 'Shirt', 'Apparel', 204, 250.00, '2023-06-05'),
+(13, 113, 'Smartwatch', 'Electronics', 201, 1100.00, '2023-06-20');
+
+
+WITH CTE AS(
+	SELECT
+		Category,
+        CustomerID,
+        SUM(SaleAmount) AS TotalSpent,
+        ROW_NUMBER() OVER(PARTITION BY Category ORDER BY SUM(SaleAmount) DESC) AS Rnk
+FROM
+	ProductSales
+GROUP BY
+	Category, CustomerID
+HAVING
+	SUM(SaleAmount) > 1000
+)
+SELECT
+	Category,
+    CustomerID,
+    TotalSpent
+FROM
+	cte
+WHERE
+	Rnk <=5;
+
+
+-- =====================================================
+-- Identify the products that have more than 4 returns and have an average return amount greater than 100 EUR. Only include products where the total sales amount is greater than 5000 EUR.
+-- ====================================================
+DROP TABLE IF EXISTS SalesReturns;
+
+CREATE TABLE SalesReturns (
+ReturnID INT,
+ProductID INT,
+ProductName VARCHAR(100),
+SaleAmount DECIMAL(10, 2),
+ReturnAmount DECIMAL(10, 2),
+ReturnDate DATE
+);
+-- Datasets
+INSERT INTO SalesReturns (ReturnID, ProductID, ProductName, SaleAmount, ReturnAmount, ReturnDate) VALUES
+(1, 201, 'Laptop', 1500.00, 200.00, '2023-01-10'),
+(2, 202, 'Phone', 800.00, 120.00, '2023-01-20'),
+(3, 201, 'Laptop', 1200.00, 150.00, '2023-02-05'),
+(4, 203, 'Shoes', 100.00, 20.00, '2023-02-15'),
+(5, 204, 'Headphones', 150.00, 50.00, '2023-03-01'),
+(6, 201, 'Laptop', 1300.00, 300.00, '2023-03-10'),
+(7, 205, 'Smartwatch', 200.00, 80.00, '2023-03-25'),
+(8, 201, 'Laptop', 1200.00, 250.00, '2023-04-05'),
+(9, 203, 'Shoes', 150.00, 30.00, '2023-04-10'),
+(10, 202, 'Phone', 900.00, 100.00, '2023-05-01'),
+(11, 201, 'Laptop', 1800.00, 400.00, '2023-05-10'),
+(12, 205, 'Smartwatch', 300.00, 90.00, '2023-05-15'),
+(13, 204, 'Headphones', 250.00, 60.00, '2023-06-01');
+
+
+SELECT
+    ProductName,
+    COUNT(ReturnID) AS TotalReturns,
+    AVG(ReturnAmount) AS AvgReturnAmount,
+    SUM(SaleAmount) AS TotalSales
+FROM SalesReturns
+GROUP BY
+    ProductName,
+    ProductID
+HAVING
+    COUNT(ReturnID) > 4
+    AND AVG(ReturnAmount) > 100
+    AND SUM(SaleAmount) > 5000;
+
+
+-- =====================================================
+-- Find the top 5 customers who spent the most across all their orders in a specific year (e.g., 2023). Include only customers who placed at least 3 orders in that year, and filter for customers whose total spending exceeds 5000 EUR.
+-- ====================================================
+DROP TABLE IF EXISTS Orders;
+
+CREATE TABLE Orders (
+OrderID INT,
+CustomerID INT,
+OrderDate DATE,
+OrderAmount DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Orders (OrderID, CustomerID, OrderDate, OrderAmount) VALUES
+(1, 301, '2023-01-15', 1500.00),
+(2, 302, '2023-02-10', 1200.00),
+(3, 303, '2023-03-05', 200.00),
+(4, 301, '2023-04-01', 700.00),
+(5, 304, '2023-05-15', 250.00),
+(6, 305, '2023-06-01',350.00),
+(7, 301, '2023-07-10', 1200.00),
+(8, 303, '2023-08-25', 700.00),
+(9, 302, '2023-09-05', 1200.00),
+(10, 305, '2023-09-20', 500.00),
+(11, 301, '2023-10-15', 3000.00),
+(12, 304, '2023-11-10', 450.00),
+(13, 305, '2023-12-01', 600.00);
+
+
+SELECT
+	CustomerID,
+    SUM(OrderAmount) AS TotalAmount
+FROM
+	Orders
+WHERE
+	YEAR(OrderDate) = 2023
+GROUP BY
+	CustomerID
+HAVING
+	SUM(OrderAmount) > 5000
+ORDER BY
+	SUM(OrderAmount) DESC
+LIMIT 5;
+
+
+-- =====================================================
+-- Identify the top 5 products with the highest return rate, where the return rate is defined as the percentage of returns relative to the total number of sales. Include only products
+-- where the total number of returns is greater than 20, and filter for products where the return rate is greater than 15%.
+-- ====================================================
+DROP TABLE IF EXISTS ProductSales;
+DROP TABLE IF EXISTS ProductReturns;
+
+CREATE TABLE ProductSales (
+SaleID INT,
+ProductID INT,
+ProductName VARCHAR(100),
+SaleAmount DECIMAL(10, 2),
+SaleDate DATE
+);
+CREATE TABLE ProductReturns (
+ReturnID INT,
+ProductID INT,
+ReturnAmount DECIMAL(10, 2),
+ReturnDate DATE
+);
+-- Datasets
+INSERT INTO ProductSales (SaleID, ProductID, ProductName, SaleAmount, SaleDate) VALUES
+(1, 101, 'Laptop', 1500.00, '2023-01-01'),
+(2, 101, 'Laptop', 1200.00, '2023-01-15'),
+(3, 102, 'Phone', 800.00, '2023-02-10'),
+(4, 101, 'Laptop', 1300.00, '2023-02-20'),
+(5, 103, 'Headphones', 150.00, '2023-03-01'),
+(6, 102, 'Phone', 900.00, '2023-03-05'),
+(7, 104, 'Smartwatch', 300.00, '2023-04-01'),
+(8, 101, 'Laptop', 1600.00, '2023-04-10'),
+(9, 102, 'Phone', 700.00, '2023-05-15'),
+(10, 103, 'Headphones', 250.00, '2023-06-01'),
+(11, 101, 'Laptop', 1200.00, '2023-06-20');
+INSERT INTO ProductReturns (ReturnID, ProductID, ReturnAmount, ReturnDate) VALUES
+(1, 101, 200.00, '2023-01-10'),
+(2, 101, 250.00, '2023-02-05'),
+(3, 102, 120.00, '2023-02-15'),
+(4, 101, 300.00, '2023-03-01'),
+(5, 102, 150.00, '2023-03-20'),
+(6, 101, 250.00, '2023-04-01'),
+(7, 103, 50.00, '2023-05-10'),
+(8, 102, 100.00, '2023-05-25'),
+(9, 101, 400.00, '2023-06-05'),
+(10, 103, 75.00, '2023-06-15');
+
+
+WITH sales AS(
+    SELECT
+        ProductID,
+        ProductName,
+        COUNT(SaleID) AS TotalSales
+    FROM ProductSales
+    GROUP BY ProductID, ProductName
+),
+
+returns AS(
+    SELECT
+        ProductID,
+        COUNT(ReturnID) AS TotalReturns
+    FROM ProductReturns
+    GROUP BY ProductID
+)
+
+SELECT
+    s.ProductID,
+    s.ProductName,
+    COALESCE(r.TotalReturns, 0) AS TotalReturns,
+    ( COALESCE(r.TotalReturns, 0) * 100.0 / s.TotalSales) AS ReturnRate
+FROM sales s
+LEFT JOIN returns r
+    ON s.ProductID = r.ProductID
+WHERE COALESCE(r.TotalReturns, 0) > 20
+	AND (
+    COALESCE(r.TotalReturns, 0) * 100.0 / s.TotalSales
+	) > 15
+ORDER BY ReturnRate DESC
+LIMIT 5;
+
+
+-- =====================================================
+-- Get all distinct sizes of beverages offered, but ensure that the sizes are ordered by their price in descending order.
+-- ====================================================
+DROP TABLE IF EXISTS Beverages;
+
+CREATE TABLE Beverages (
+BeverageID INT,
+BeverageName VARCHAR(50),
+Size VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Beverages (BeverageID, BeverageName, Size, Price) VALUES
+(1, 'Latte', 'Tall', 3.50),
+(2, 'Latte', 'Grande', 4.00),
+(3, 'Latte', 'Venti', 4.50),
+(4, 'Espresso', 'Solo', 2.50),
+(5, 'Espresso', 'Doppio', 3.00);
+
+
+SELECT
+	DISTINCT Size
+FROM
+	Beverages
+ORDER BY
+	Price DESC;
+
+
+-- =====================================================
+-- Sort Properties by Price in Ascending Order
+-- ====================================================
+DROP TABLE IF EXISTS PropertyListings;
+
+CREATE TABLE PropertyListings (
+ListingID INT,
+PropertyName VARCHAR(100),
+City VARCHAR(50),
+Price DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO PropertyListings (ListingID, PropertyName, City, Price) VALUES
+(1, 'Luxury Villa', 'Miami', 2500000.00),
+(2, 'Cozy Condo', 'San Diego', 800000.00),
+(3, 'Suburban House', 'Austin', 350000.00),
+(4, 'Downtown Loft', 'Seattle', 1200000.00),
+(5, 'Lakefront Cabin', 'Denver', 900000.00);
+
+
+SELECT
+	*
+FROM
+	PropertyListings
+ORDER BY
+	Price;
+
+
+-- =====================================================
+-- Sort Properties by Year Built with Unknown Years Last
+-- ====================================================
+DROP TABLE IF EXISTS LuxuryProperties;
+
+CREATE TABLE LuxuryProperties (
+PropertyID INT,
+PropertyName VARCHAR(100),
+City VARCHAR(50),
+Price DECIMAL(10, 2),
+YearBuilt INT
+);
+-- Datasets
+INSERT INTO LuxuryProperties (PropertyID, PropertyName, City, Price, YearBuilt) VALUES
+(1, 'Skyline Villa', 'New York', 2000000.00, 2015),
+(2, 'Ocean Breeze', 'Miami', 1500000.00, NULL),
+(3, 'Mountain Retreat', 'Denver', 2500000.00, 2020),
+(4, 'City Penthouse', 'Los Angeles', 1200000.00, 2018);
+
+
+SELECT
+    *
+FROM 
+	LuxuryProperties
+ORDER BY
+    YearBuilt IS NULL,
+    YearBuilt ASC;
