@@ -6431,3 +6431,1011 @@ FROM
 ORDER BY
     YearBuilt IS NULL,
     YearBuilt ASC;
+
+
+-- =====================================================
+-- Retrieve Properties Sorted by Price-per-Square-Foot Value
+-- ====================================================
+DROP TABLE IF EXISTS RealEstateProperties;
+
+CREATE TABLE RealEstateProperties (
+PropertyID INT,
+PropertyName VARCHAR(100),
+City VARCHAR(50),
+Price DECIMAL(10, 2),
+SquareFeet INT
+);
+-- Datasets
+INSERT INTO RealEstateProperties (PropertyID, PropertyName, City, Price, SquareFeet) VALUES
+(1, 'Seaside Cottage', 'Miami', 800000.00, 2000),
+(2, 'Downtown Loft', 'Seattle', 1200000.00, 1500),
+(3, 'Suburban House', 'Austin', 350000.00, 2500),
+(4, 'Lakefront Cabin', 'Denver', 900000.00, 1800);
+
+
+SELECT
+	PropertyName,
+    Price / SquareFeet AS PriceSquareFeet
+FROM
+	RealEstateProperties
+ORDER BY
+	Price / SquareFeet;
+
+
+-- =====================================================
+-- Sorting Dates Stored as Text
+-- ====================================================
+DROP TABLE IF EXISTS RealEstateTransactions;
+
+CREATE TABLE RealEstateTransactions (
+TransactionID INT,
+PropertyName VARCHAR(100),
+City VARCHAR(50),
+SaleDate VARCHAR(20) -- Dates stored as text
+);
+-- Datasets
+INSERT INTO RealEstateTransactions (TransactionID, PropertyName, City, SaleDate)VALUES
+(1, 'Luxury Villa', 'London', '12-05-2023'),
+(2, 'Suburban House', 'Berlin', '01-03-2022'),
+(3, 'Downtown Loft', 'Paris', '25-12-2021'),
+(4, 'Cozy Apartment', 'Madrid', '08-07-2024'),
+(5, 'Lakeside Cabin', 'Geneva', '15-09-2023');
+
+
+SELECT
+	*
+FROM
+	RealEstateTransactions
+ORDER BY
+	STR_TO_DATE(SaleDate, '%d-%m-%Y') ASC;
+
+
+-- =====================================================
+-- Sort Employees table by Department and Calculate Average Salary
+-- ====================================================
+DROP TABLE IF EXISTS Employees;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+EmployeeName VARCHAR(100),
+Department VARCHAR(50),
+Salary DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Employees (EmployeeID, EmployeeName, Department, Salary) VALUES
+(1, 'Alice', 'Engineering', 90000.00),
+(2, 'Bob', 'HR', 50000.00),
+(3, 'Charlie', 'Engineering', 95000.00),
+(4, 'Diana', 'Marketing', 60000.00),
+(5, 'Eve', 'HR', 55000.00),
+(6, 'Frank', 'Marketing', 75000.00);
+
+
+SELECT
+    Department,
+    AVG(Salary) AS AverageSalary
+FROM
+	Employees
+GROUP BY 
+	Department
+ORDER BY
+	Department;
+
+
+-- =====================================================
+-- Sort Projects by Deadline and Count Employees Involved
+-- ====================================================
+DROP TABLE IF EXISTS Projects;
+DROP TABLE IF EXISTS ProjectEmployees;
+
+CREATE TABLE Projects (
+ProjectID INT,
+ProjectName VARCHAR(100),
+Deadline DATE
+);
+
+CREATE TABLE ProjectEmployees (
+ProjectID INT,
+EmployeeID INT
+);
+-- Datasets
+INSERT INTO Projects (ProjectID, ProjectName, Deadline) VALUES
+(1, 'Project Alpha', '2024-12-01'),
+(2, 'Project Beta', '2023-08-15'),
+(3, 'Project Gamma', '2023-11-30');
+INSERT INTO ProjectEmployees (ProjectID, EmployeeID) VALUES
+(1, 101),
+(1, 102),
+(1, 103),
+(2, 104),
+(3, 105);
+
+
+SELECT
+	p.ProjectID,
+    p.ProjectName,
+    p.Deadline,
+    COUNT(e.EmployeeID)
+FROM
+	Projects p
+JOIN
+	ProjectEmployees e
+    ON
+    p.ProjectID = e.ProjectID
+GROUP BY
+	p.ProjectID
+ORDER BY
+	p.Deadline;
+
+
+-- =====================================================
+-- Sort Students by Total Marks and Filter Those Above a Threshold of 250
+-- ====================================================
+DROP TABLE IF EXISTS Students;
+DROP TABLE IF EXISTS Marks;
+
+CREATE TABLE Students (
+StudentID INT,
+StudentName VARCHAR(100)
+);
+-- Table creation for Marks
+CREATE TABLE Marks (
+StudentID INT,
+Subject VARCHAR(50),
+Marks INT
+);
+-- Datasets
+INSERT INTO Students (StudentID, StudentName) VALUES
+(1, 'Alice'),
+(2, 'Bob'),
+(3, 'Charlie'),
+(4, 'Diana');
+INSERT INTO Marks (StudentID, Subject, Marks) VALUES
+(1, 'Math', 95),
+(1, 'Science', 90),
+(1, 'English', 85),
+(2, 'Math', 80),
+(2, 'Science', 70),
+(2, 'English', 85),
+(3, 'Math', 100),
+(3, 'Science', 90),
+(3, 'English', 85),
+(4, 'Math', 75),
+(4, 'Science', 65),
+(4, 'English', 70);
+
+
+SELECT
+	s.StudentID,
+    SUM(m.Marks) AS TotalMarks
+FROM
+	Students s
+JOIN
+	Marks m
+ON	s.StudentID = m.StudentID
+GROUP BY
+	s.StudentID
+HAVING
+	SUM(m.Marks) > 250
+ORDER BY
+	m.Marks DESC;
+
+
+-- =====================================================
+-- Select the maximum salary from the Employees table.
+-- ==================================================== 
+DROP TABLE IF EXISTS Employees;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+EmployeeName VARCHAR(50),
+Department VARCHAR(50),
+Salary DECIMAL(10, 2)
+);
+-- Datasets
+INSERT INTO Employees (EmployeeID, EmployeeName, Department, Salary) VALUES
+(1, 'Alice', 'Engineering', 100000.00),
+(2, 'Bob', 'Engineering', 95000.00),
+(3, 'Charlie', 'HR', 70000.00),
+(4, 'David', 'HR', 75000.00),
+(5, 'Eve', 'Marketing', 60000.00);
+
+
+SELECT
+	MAX(Salary)
+FROM
+	Employees;
+
+
+-- =====================================================
+-- Write an SQL query to retrieve all students along with their grades.
+-- ==================================================== 
+DROP TABLE IF EXISTS Students;
+DROP TABLE IF EXISTS Grades;
+
+CREATE TABLE Students (
+StudentID INT,
+Name VARCHAR(50)
+);
+
+CREATE TABLE Grades (
+StudentID INT,
+Grade VARCHAR(2)
+);
+
+-- Insert Records into Students Table
+INSERT INTO Students (StudentID, Name)
+VALUES
+(1, 'John'),
+(2, 'Alice'),
+(3, 'Bob'),
+(4, 'Emily'),
+(5, 'Michael'),
+(6, 'Sophia'),
+(7, 'Daniel'),
+(8, 'Olivia'),
+(9, 'William'),
+(10, 'Ava'),
+(11, 'James'),
+(12, 'Emma'),
+(13, 'Alexander'),
+(14, 'Mia'),
+(15, 'Benjamin'),
+(16, 'Charlotte'),
+(17, 'Ethan'),
+(18, 'Amelia'),
+(19, 'Elijah'),
+(20, 'Harper'),
+(21, 'Henry'),
+(22, 'Evelyn'),
+(23, 'Jacob'),
+(24, 'Abigail'),
+(25, 'Matthew'),
+(26, 'Emily'),
+(27, 'David'),
+(28, 'Liam'),
+(29, 'Avery'),
+(30, 'Michael'),
+(31, 'Sofia'),
+(32, 'Lucas'),
+(33, 'Madison'),
+(34, 'Ella'),
+(35, 'Logan');
+
+-- Insert Records into Grades Table
+INSERT INTO Grades (StudentID, Grade)
+VALUES
+(1, 'A'),
+(2, 'B'),
+(3, 'C'),
+(4, 'B'),
+(5, 'A'),
+(6, 'B'),
+(7, 'A'),
+(8, 'C'),
+(9, 'A'),
+(10, 'B'),
+(11, 'B'),
+(12, 'C'),
+(13, 'A'),
+(14, 'B'),
+(15, 'C'),
+(16, 'A'),
+(17, 'A'),
+(18, 'B'),
+(19, 'C'),
+(20, 'A'),
+(21, 'A'),
+(22, 'B'),
+(23, 'B'),
+(24, 'C'),
+(25, 'A'),
+(26, 'B'),
+(27, 'C'),
+(28, 'A'),
+(29, 'A'),
+(30, 'B'),
+(31, 'B'),
+(32, 'C'),
+(33, 'A'),
+(34, 'B'),
+(35, 'C');
+
+
+SELECT
+	s.StudentID,
+    g.Grade
+FROM
+	Students s
+JOIN Grades g
+ON s.StudentID = g.StudentID;
+
+
+-- =====================================================
+-- Write an SQL query to retrieve all employees along with their department names.
+-- ==================================================== 
+DROP TABLE IF EXISTS Employees;
+DROP TABLE IF EXISTS Departments;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(50),
+DepartmentID INT
+);
+
+CREATE TABLE Departments (
+DepartmentID INT,
+DepartmentName VARCHAR(50)
+);
+
+-- Insert Records into Employees Table
+INSERT INTO Employees (EmployeeID, Name, DepartmentID)
+VALUES
+(1, 'John', 1),
+(2, 'Alice', 2),
+(3, 'Bob', 1),
+(4, 'Emily', 3),
+(5, 'Michael', 2),
+(6, 'Sophia', 1),
+(7, 'Daniel', 2),
+(8, 'Olivia', 3),
+(9, 'William', 1),
+(10, 'Ava', 2);
+
+-- Insert Records into Departments Table
+INSERT INTO Departments (DepartmentID, DepartmentName)
+VALUES
+(1, 'Human Resources'),
+(2, 'Finance'),
+(3, 'Marketing');
+
+
+SELECT
+	e.EmployeeID,
+    d.DepartmentName
+FROM
+	Employees e
+JOIN Departments d
+ON
+	e.DepartmentID = d.DepartmentID;
+
+
+-- =====================================================
+-- Write an SQL query to select all orders along with their customer names.
+-- ====================================================
+DROP TABLE IF EXISTS Customers;
+DROP TABLE IF EXISTS Orders;
+
+CREATE TABLE Customers (
+CustomerID INT,
+CustomerName VARCHAR(50)
+);
+
+CREATE TABLE Orders (
+OrderID INT,
+CustomerID INT,
+TotalAmount DECIMAL(10, 2)
+);
+
+-- Insert Records into Customers Table
+INSERT INTO Customers (CustomerID, CustomerName) VALUES
+(101, 'John Doe'),
+(102, 'Alice Smith'),
+(103, 'Bob Johnson'),
+(104, 'Emily Brown'),
+(105, 'Michael Wilson'),
+(106, 'Sophia Taylor'),
+(107, 'Daniel Anderson'),
+(108, 'Olivia Martinez'),
+(109, 'William Garcia'),
+(110, 'Ava Lopez'),
+(111, 'James Lee'),
+(112, 'Emma Hernandez'),
+(113, 'Alexander Adams'),
+(114, 'Mia Evans'),
+(115, 'Benjamin Baker'),
+(116, 'Charlotte Hill'),
+(117, 'Ethan Nelson'),
+(118, 'Amelia Green'),
+(119, 'Elijah Carter'),
+(120, 'Harper Hughes'),
+(121, 'Henry Flores'),
+(122, 'Evelyn Collins'),
+(123, 'Jacob Stewart'),
+(124, 'Abigail Morris'),
+(125, 'Matthew Rogers');
+
+-- Insert Records into Orders Table
+INSERT INTO Orders (OrderID, CustomerID, TotalAmount) VALUES
+(1, 101, 100.50),
+(2, 102, 200.75),
+(3, 103, 350.20),
+(4, 104, 450.90),
+(5, 105, 550.25),
+(6, 106, 450.00),
+(7, 107, 600.75),
+(8, 108, 700.50),
+(9, 109, 800.25),
+(10, 110, 900.00),
+(11, 111, 1000.50),
+(12, 112, 1050.75),
+(13, 113, 1200.20),
+(14, 114, 1350.90),
+(15, 115, 1450.25),
+(16, 116, 1550.00),
+(17, 117, 1600.75),
+(18, 118, 1700.50),
+(19, 119, 1800.25),
+(20, 120, 1900.00),
+(21, 121, 2000.50),
+(22, 122, 2100.75),
+(23, 123, 2200.20),
+(24, 124, 2300.90),
+(25, 125, 2400.25);
+
+
+SELECT 
+	o.OrderID, 
+    o.TotalAmount, 
+    c.CustomerName
+FROM 
+	Orders o
+JOIN 
+	Customers c 
+ON o.CustomerID = c.CustomerID;
+
+
+-- =====================================================
+-- Write an SQL query to select all employees and their salaries. Include both employees without a salary and salary records without a corresponding employee.
+-- ====================================================
+DROP TABLE IF EXISTS Employees;
+DROP TABLE IF EXISTS Salaries;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(50)
+);
+
+CREATE TABLE Salaries (
+EmployeeID INT,
+Salary DECIMAL(10, 2)
+);
+
+-- Insert Records into Employees Table
+INSERT INTO Employees (EmployeeID, Name)
+VALUES
+(1, 'John'),
+(2, 'Alice'),
+(3, 'Bob'),
+(4, 'Emily');
+
+-- Insert Records into Salaries Table
+INSERT INTO Salaries (EmployeeID, Salary)
+VALUES
+(1, 50000.00),
+(2, 60000.00),
+(NULL, 55000.00),
+(4, NULL);
+
+
+SELECT 
+	e.Name, 
+    s.Salary
+FROM 
+	Employees e
+LEFT JOIN 
+	Salaries s 
+ON e.EmployeeID = s.EmployeeID
+UNION
+SELECT 
+	e.Name, 
+    s.Salary
+FROM 
+	Employees e
+RIGHT JOIN 
+	Salaries s 
+ON e.EmployeeID = s.EmployeeID;
+
+
+-- =====================================================
+-- Write an SQL query to retrieve the list of employees who have the same manager and their corresponding manager's name. You need to use a self-join on the Employees
+-- table. The result should show the employee's name and the name of their manager.
+-- ==================================================== 
+DROP TABLE IF EXISTS Employees;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+Name VARCHAR(50),
+ManagerID INT
+);
+
+-- Insert Records into Employees Table
+INSERT INTO Employees (EmployeeID, Name, ManagerID)
+VALUES
+(1, 'John', NULL), 
+(2, 'Alice', 1), 
+(3, 'Bob', 1), 
+(4, 'Emily', 2), 
+(5, 'Michael', 2), 
+(6, 'Sophia', 3), 
+(7, 'Daniel', 3);
+
+SELECT 
+	e1.Name AS EmployeeName, 
+    e2.Name AS ManagerName
+FROM 
+	Employees e1
+JOIN 
+	Employees e2 
+    ON e1.ManagerID = e2.EmployeeID
+ORDER BY 
+	e1.Name;
+
+
+-- =====================================================
+-- Write an SQL query to select all subjects and the corresponding teacher names. Include subjects without a corresponding teacher.
+-- ==================================================== 
+DROP TABLE IF EXISTS Subjects;
+DROP TABLE IF EXISTS Teachers;
+
+CREATE TABLE Subjects (
+SubjectID INT,
+SubjectName VARCHAR(50)
+);
+
+CREATE TABLE Teachers (
+TeacherID INT,
+Name VARCHAR(50),
+SubjectID INT
+);
+
+-- Insert Records into Subjects Table
+INSERT INTO Subjects (SubjectID, SubjectName) VALUES
+(1, 'Mathematics'),
+(2, 'Physics'),
+(3, 'Biology'),
+(4, 'History'),
+(5, 'English');
+
+-- Insert Records into Teachers Table
+INSERT INTO Teachers (TeacherID, Name, SubjectID) VALUES
+(101, 'Mr. Smith', 1),
+(102, 'Ms. Johnson', 2),
+(103, 'Mrs. Lee', 3),
+(104, 'Mr. Garcia', NULL),
+(105, 'Dr. Martinez', 5),
+(106, 'Ms. Clark', NULL);
+
+
+SELECT
+	s.SubjectID,
+    s.SubjectName,
+    t.TeacherID,
+    t.NAME
+FROM
+	Subjects s
+LEFT JOIN Teachers t ON s.SubjectID = t.SubjectID;
+
+
+-- =====================================================
+-- Select the employee name and their date of joining (DOJ) who joined the earliest from the Employees table.
+-- ==================================================== 
+DROP TABLE IF EXISTS Employees;
+
+CREATE TABLE Employees (
+EmployeeID INT,
+EmployeeName VARCHAR(50),
+DOJ DATE,
+Department VARCHAR(50),
+Salary DECIMAL(10, 2)
+);
+
+INSERT INTO Employees (EmployeeID, EmployeeName, DOJ, Department, Salary) VALUES
+(1, 'Alice', '2015-01-10', 'Engineering', 100000.00),
+(2, 'Bob', '2017-06-25', 'HR', 95000.00),
+(3, 'Charlie', '2014-08-15', 'Marketing', 70000.00),
+(4, 'David', '2019-04-01', 'Engineering', 75000.00),
+(5, 'Eve', '2016-03-22', 'HR', 80000.00);
+
+
+SELECT 
+	EmployeeName, 
+    DOJ AS EarliestDOJ
+FROM 
+	Employees
+WHERE 
+	DOJ = (SELECT MIN(DOJ) FROM Employees);
+
+
+-- =====================================================
+-- Write a SQL query to select the order with the highest total amount.
+-- ==================================================== 
+DROP TABLE IF EXISTS Orders;
+
+CREATE TABLE Orders (
+OrderID INT,
+CustomerID INT,
+TotalAmount DECIMAL(10, 2)
+);
+
+-- Insert Records into Orders Table
+INSERT INTO Orders (OrderID, CustomerID, TotalAmount)
+VALUES
+(1, 101, 100.50),
+(2, 102, 200.75),
+(3, 103, 350.20),
+(4, 104, 450.90),
+(5, 105, 550.25),
+(6, 106, 450.00),
+(7, 107, 600.75),
+(8, 108, 700.50),
+(9, 109, 800.25),
+(10, 110, 900.00),
+(11, 111, 1000.50),
+(12, 112, 1050.75),
+(13, 113, 1200.20),
+(14, 114, 1350.90),
+(15, 115, 1450.25),
+(16, 116, 1550.00),
+(17, 117, 1600.75),
+(18, 118, 1700.50),
+(19, 119, 1800.25),
+(20, 120, 1900.00),
+(21, 121, 2000.50),
+(22, 122, 2100.75),
+(23, 123, 2200.20),
+(24, 124, 2300.90),
+(25, 125, 2400.25),
+(26, 126, 2500.00),
+(27, 127, 2600.75),
+(28, 128, 2700.50),
+(29, 129, 2800.25),
+(30, 130, 2900.00),
+(31, 131, 3000.50),
+(32, 132, 3100.75),
+(33, 133, 3200.20),
+(34, 134, 3300.90),
+(35, 135, 3400.25);
+
+
+SELECT 
+	OrderID, 
+    TotalAmount
+FROM 
+	Orders
+WHERE 
+	TotalAmount = (SELECT MAX(TotalAmount) FROM Orders);
+
+
+-- =====================================================
+-- Write an SQL query to retrieve employee details from each department who have salary greater than the average salary in their department.
+-- ==================================================== 
+DROP TABLE IF EXISTS Employees;
+
+CREATE TABLE Employees (
+Emp_No DECIMAL(4,0) NOT NULL,
+Emp_Name VARCHAR(10),
+Job_Name VARCHAR(9),
+Manager_Id DECIMAL(4,0),
+HireDate DATE,
+Salary DECIMAL(7,2),
+Commission DECIMAL(7,2),
+Department VARCHAR(20)
+);
+
+-- Insert data
+INSERT INTO Employees (Emp_No, Emp_Name, Job_Name, Manager_Id, HireDate, Salary,Commission, Department) VALUES
+(7839, 'KING', 'PRESIDENT', NULL, '1981-11-17', 5000, NULL, 'IT'),
+(7698, 'BLAKE', 'MANAGER', 7839, '1981-05-01', 2850, NULL, 'HR'),
+(7782, 'CLARK', 'MANAGER', 7839, '1981-06-09', 2450, NULL, 'Marketing'),
+(7566, 'JONES', 'MANAGER', 7839, '1981-04-02', 2975, NULL, 'Operations'),
+(7788, 'SCOTT', 'ANALYST', 7566, '1987-07-29', 3000, NULL, 'Operations'),
+(7902, 'FORD', 'ANALYST', 7566, '1981-12-03', 3000, NULL, 'Operations'),
+(7369, 'SMITH', 'CLERK', 7902, '1980-12-17', 800, NULL, 'Operations'),
+(7499, 'ALLEN', 'SALESMAN', 7698, '1981-02-20', 1600, 300, 'HR'),
+(7521, 'WARD', 'SALESMAN', 7698, '1981-02-22', 1250, 500, 'HR'),
+(7654, 'MARTIN', 'SALESMAN', 7698, '1981-09-28', 1250, 1400, 'HR'),
+(7844, 'TURNER', 'SALESMAN', 7698, '1981-09-08', 1500, 0, 'HR'),
+(7876, 'ADAMS', 'CLERK', 7788, '1987-06-02', 1100, NULL, 'Operations'),
+(7900, 'JAMES', 'CLERK', 7698, '1981-12-03', 950, NULL, 'HR'),
+(7934, 'MILLER', 'CLERK', 7782, '1982-01-23', 1300, NULL, 'Marketing'),
+(7905, 'BROWN', 'SALESMAN', 7698, '1981-11-12', 1250, 1400, 'HR'),
+(7906, 'DAVIS', 'ANALYST', 7566, '1987-07-13', 3000, NULL, 'Operations'),
+(7907, 'GARCIA', 'MANAGER', 7839, '1981-08-12', 2975, NULL, 'IT'),
+(7908, 'HARRIS', 'SALESMAN', 7698, '1981-06-21', 1600, 300, 'HR'),
+(7909, 'JACKSON', 'CLERK', 7902, '1981-11-17', 800, NULL, 'Operations'),
+(7910, 'JOHNSON', 'MANAGER', 7839, '1981-04-02', 2850, NULL, 'Marketing'),
+(7911, 'LEE', 'ANALYST', 7566, '1981-09-28', 1250, 1400, 'Operations'),
+(7912, 'MARTINEZ', 'CLERK', 7902, '1981-12-03', 1250, NULL, 'Operations'),
+(7913, 'MILLER', 'MANAGER', 7839, '1981-01-23', 2450, NULL, 'HR'),
+(7914, 'RODRIGUEZ', 'SALESMAN', 7698, '1981-12-03', 1500, 0, 'Marketing'),
+(7915, 'SMITH', 'CLERK', 7902, '1980-12-17', 1100, NULL, 'IT'),
+(7916, 'TAYLOR', 'CLERK', 7902, '1981-02-20', 950, NULL, 'Marketing'),
+(7917, 'THOMAS', 'SALESMAN', 7698, '1981-02-22', 1250, 500, 'Operations'),
+(7918, 'WHITE', 'ANALYST', 7566, '1981-09-28', 1300, NULL, 'IT'),
+(7919, 'WILLIAMS', 'MANAGER', 7839, '1981-11-17', 5000, NULL, 'Marketing'),
+(7920, 'WILSON', 'SALESMAN', 7698, '1981-05-01', 2850, NULL, 'HR'),
+(7921, 'YOUNG', 'CLERK', 7902, '1981-06-09', 2450, NULL, 'Operations'),
+(7922, 'ADAMS', 'ANALYST', 7566, '1987-07-13', 3000, NULL, 'HR'),
+(7923, 'BROWN', 'MANAGER', 7839, '1981-08-12', 2975, NULL, 'Marketing'),
+(7924, 'DAVIS', 'SALESMAN', 7698, '1981-06-21', 1600, 300, 'Operations');
+
+
+SELECT	a
+	Emp_No, 
+    Emp_Name, 
+    Job_Name, 
+    Salary, 
+    Department
+FROM
+	Employees e1
+WHERE
+	Salary > (
+		SELECT
+			AVG(Salary)
+		FROM
+			Employees e2
+		WHERE
+			e1.Department = e2.Department
+    );
+
+-- Alternate solution
+WITH employee_avg AS(
+    SELECT
+        Emp_No,
+        Emp_Name,
+        Job_Name,
+        Salary,
+        Department,
+        AVG(Salary) OVER (
+            PARTITION BY Department
+        ) AS Dept_Avg_Salary
+    FROM Employees
+)
+SELECT
+    Emp_No,
+    Emp_Name,
+    Job_Name,
+    Salary,
+    Department
+FROM employee_avg
+WHERE Salary > Dept_Avg_Salary;
+
+
+-- =====================================================
+-- Find the details of employees whose salary is greater than the average salary across the entire company.
+-- ==================================================== 
+DROP TABLE IF EXISTS employees;
+
+CREATE TABLE employees (
+employee_id SERIAL PRIMARY KEY,
+employee_name VARCHAR(100),
+department VARCHAR(50),
+salary DECIMAL(10, 2)
+);
+
+-- Insert data
+INSERT INTO employees (employee_name, department, salary) VALUES
+('John Doe', 'HR', 50000.00),
+('Jane Smith', 'HR', 55000.00),
+('Michael Johnson', 'HR', 60000.00),
+('Emily Davis', 'IT', 60000.00),
+('David Brown', 'IT', 65000.00),
+('Sarah Wilson', 'Finance', 70000.00),
+('Robert Taylor', 'Finance', 75000.00),
+('Jennifer Martinez', 'Finance', 80000.00);
+
+
+SELECT
+	*
+FROM
+	employees
+WHERE
+	salary > (
+		SELECT
+			AVG(salary)
+		FROM
+			employees
+    );
+
+
+-- =====================================================
+-- Write a SQL query to find the names of managers who have at least five direct reports. Ensure that no employee is their own manager. Return the result table in any order.
+-- ==================================================== 
+DROP TABLE IF EXISTS Employees;
+
+CREATE TABLE Employees (
+id INT PRIMARY KEY,
+name VARCHAR(255),
+department VARCHAR(255),
+managerId INT
+);
+
+-- Insert data
+INSERT INTO Employees (id, name, department, managerId) VALUES
+(101, 'John', 'A', NULL),
+(102, 'Dan', 'A', 101),
+(103, 'James', 'A', 101),
+(104, 'Amy', 'A', 101),
+(105, 'Anne', 'A', 101),
+(106, 'Ron', 'B', 101),
+(107, 'Michael', 'C', NULL),
+(108, 'Sarah', 'C', 107),
+(109, 'Emily', 'C', 107),
+(110, 'Brian', 'C', 107);
+
+
+SELECT 
+	name
+FROM 
+	Employees
+WHERE 
+	id IN (
+	SELECT 
+		managerId
+	FROM 
+		Employees
+	WHERE 
+		managerId IS NOT NULL
+	GROUP BY 
+		managerId
+	HAVING 
+		COUNT(*) >= 5);
+
+
+-- =====================================================
+-- Write an SQL query to find the average market price of houses in each state and city, where the average market price exceeds 300,000, using a correlated subquery.
+-- ==================================================== 
+DROP TABLE IF EXISTS house_price;
+
+CREATE TABLE house_price (
+id INT,
+state VARCHAR(255),
+city VARCHAR(255),
+street_address VARCHAR(255),
+mkt_price INT
+);
+
+-- Insert data
+INSERT INTO house_price (id, state, city, street_address, mkt_price) VALUES
+(1, 'NY', 'New York City', '66 Trout Drive', 449761),
+(2, 'NY', 'New York City', 'Atwater', 277527),
+(3, 'NY', 'New York City', '58 Gates Street', 268394),
+(4, 'NY', 'New York City', 'Norcross', 279929),
+(5, 'NY', 'New York City', '337 Shore Ave.', 151592),
+(6, 'NY', 'New York City', 'Plainfield', 624531),
+(7, 'NY', 'New York City', '84 Central Street', 267345),
+(8, 'NY', 'New York City', 'Passaic', 88504),
+(9, 'NY', 'New York City', '951 Fulton Road', 270476),
+(10, 'NY', 'New York City', 'Oxon Hill', 118112),
+(11, 'CA', 'Los Angeles', '692 Redwood Court', 150707),
+(12, 'CA', 'Los Angeles', 'Lewiston', 463180),
+(13, 'CA', 'Los Angeles', '8368 West Acacia Ave.', 538865),
+(14, 'CA', 'Los Angeles', 'Pearl', 390896),
+(15, 'CA', 'Los Angeles', '8206 Old Riverview Rd.', 117754),
+(16, 'CA', 'Los Angeles', 'Seattle', 424588),
+(17, 'CA', 'Los Angeles', '7227 Joy Ridge Rd.', 156850),
+(18, 'CA', 'Los Angeles', 'Battle Ground', 643454),
+(19, 'CA', 'Los Angeles', '233 Bedford Ave.', 713841),
+(20, 'CA', 'Los Angeles', 'Saint Albans', 295852),
+(21, 'IL', 'Chicago', '8830 Baker St.', 12944),
+(22, 'IL', 'Chicago', 'Watertown', 410766),
+(23, 'IL', 'Chicago', '632 Princeton St.', 160696),
+(24, 'IL', 'Chicago', 'Waxhaw', 464144),
+(25, 'IL', 'Chicago', '7773 Tailwater Drive', 129393),
+(26, 'IL', 'Chicago', 'Bonita Springs', 174886),
+(27, 'IL', 'Chicago', '31 Summerhouse Rd.', 296008),
+(28, 'IL', 'Chicago', 'Middleburg', 279000),
+(29, 'IL', 'Chicago', '273 Windfall Avenue', 424846),
+(30, 'IL', 'Chicago', 'Graham', 592268),
+(31, 'TX', 'Houston', '91 Canterbury Dr.', 632014),
+(32, 'TX', 'Houston', 'Dallas', 68868),
+(33, 'TX', 'Houston', '503 Elmwood St.', 454184),
+(34, 'TX', 'Houston', 'Kennewick', 186280),
+(35, 'TX', 'Houston', '739 Chapel Street', 334474),
+(36, 'TX', 'Houston', 'San Angelo', 204460),
+(37, 'TX', 'Houston', '572 Parker Dr.', 678443),
+(38, 'TX', 'Houston', 'Bellmore', 401090),
+(39, 'TX', 'Houston', '8653 South Oxford Street', 482214),
+(40, 'TX', 'Houston', 'Butler', 330868),
+(41, 'AZ', 'Phoenix', '8667 S. Joy Ridge Court', 316291),
+(42, 'AZ', 'Phoenix', 'Torrance', 210392),
+(43, 'AZ', 'Phoenix', '35 Harvard St.', 167502),
+(44, 'AZ', 'Phoenix', 'Nutley', 327554),
+(45, 'AZ', 'Phoenix', '7313 Vermont St.', 285135),
+(46, 'AZ', 'Phoenix', 'Lemont', 577667),
+(47, 'AZ', 'Phoenix', '8905 Buttonwood Dr.', 212301),
+(48, 'AZ', 'Phoenix', 'Lafayette', 317504);
+
+
+SELECT DISTINCT
+    hp1.state,
+    hp1.city,
+    (
+        SELECT AVG(hp2.mkt_price)
+        FROM house_price hp2
+        WHERE hp1.state = hp2.state
+          AND hp1.city = hp2.city
+    ) AS avg_market_price
+FROM house_price hp1
+WHERE
+    (
+        SELECT AVG(hp2.mkt_price)
+        FROM house_price hp2
+        WHERE hp1.state = hp2.state
+          AND hp1.city = hp2.city
+    ) > 300000;
+
+-- Using Groupby
+SELECT
+    state,
+    city,
+    AVG(mkt_price) AS avg_market_price
+FROM house_price
+GROUP BY state, city
+HAVING AVG(mkt_price) > 300000;
+
+
+-- =====================================================
+-- Find the customer with the highest total purchase value based on their orders and order items.
+-- ====================================================
+DROP TABLE IF EXISTS Customers;
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS OrderItems;
+
+CREATE TABLE Customers (
+CustomerID INT PRIMARY KEY,
+CustomerName VARCHAR(100)
+);
+
+CREATE TABLE Orders (
+OrderID INT PRIMARY KEY,
+CustomerID INT,
+OrderDate DATE,
+FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+
+CREATE TABLE OrderItems (
+OrderItemID INT PRIMARY KEY,
+OrderID INT,
+ProductName VARCHAR(100),
+Quantity INT,
+UnitPrice DECIMAL(10, 2),
+FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
+);
+
+-- Insert data
+INSERT INTO Customers VALUES
+(1, 'John Doe'),
+(2, 'Jane Smith'),
+(3, 'Alice Johnson');
+
+INSERT INTO Orders VALUES
+(101, 1, '2025-01-01'),
+(102, 2, '2025-01-02'),
+(103, 3, '2025-01-03');
+
+INSERT INTO OrderItems VALUES
+(201, 101, 'Laptop', 1, 1000.00),
+(202, 102, 'Mouse', 2, 25.00),
+(203, 102, 'Keyboard', 1, 50.00),
+(204, 103, 'Monitor', 1, 200.00);
+
+
+SELECT 
+	CustomerName
+FROM 
+	Customers
+WHERE 
+	CustomerID = (
+		SELECT 
+			CustomerID
+		FROM 
+			Orders
+		JOIN OrderItems ON Orders.OrderID = OrderItems.OrderID
+		GROUP BY 
+			CustomerID
+		ORDER BY 
+			SUM(Quantity * UnitPrice) DESC
+		LIMIT 1
+);
